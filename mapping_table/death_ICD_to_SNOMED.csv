@@ -1,0 +1,48 @@
+Source_code,OMOP_concept_id,OMOP_concept_name
+A00-A09,4134887,Infectious disease of digestive tract
+A15-A19,434557,Tuberculosis
+A30-A49,432545,Bacterial infectious disease
+A50-A64,440647,Sexually transmitted infectious disease
+A75-A79,432545,Bacterial infectious disease
+A80-A89,4028070,Infectious disease of central nervous system
+A90-A99,4347554,Viral hemorrhagic fever
+B00-B09,440029,Viral disease
+B15-B19,4291005,Viral hepatitis
+B20-B24,4221489,AIDS-associated disorder
+B25-B34,440029,Viral disease
+B35-B49,433701,Mycosis
+B50-B64,442176,Protozoan infection
+B65-B83,432251,Disease caused by parasite
+B90-B94,444201,Post-infectious disorder
+F00-F09,374009,Organic mental disorder
+F10-F19,40483111,Mental disorder due to drug
+F20-F29,436073,Psychotic disorder
+F30-F39,444100,Mood disorder
+F40-F48,444243,Neurosis
+F50-F59,4333000,Behavioral syndrome associated with physiological disturbance and physical factors
+F70-F79,440389,Mental retardation
+F80-F89,435244,Developmental disorder
+F99-F99,432586,Mental disorder
+J46,4145356,Severe persistent asthma
+S00-S09,375415,Injury of head
+S10-S19,24818,Injury of neck
+S20-S29,4094683,Chest injury
+S30-S39,200588,Injury of abdomen
+S40-S49,4130851,Injury of upper extremity
+S50-S59,136779,Disorder of forearm
+S60-S69,80004,Injury of hand
+S70-S79,4130852,Injury of lower extremity
+S80-S89,444131,Injury of lower leg
+T00-T07,440921,Traumatic injury
+T08-T14,4022201,Injury of musculoskeletal system
+T15-T19,4053838,Foreign body
+T20-T25,4123196,Burn of skin of body region
+T26-T28,198030,Burn of internal organ
+T29-T32,442013,Burn
+T33-T35,441487,Frostbite
+T36-T50,438028,Poisoning by drug AND/OR medicinal substance
+T51-T65,40481346,Poisoning due to chemical substance
+T66-T78,4167864,Effect of exposure to physical force
+T79-T79,4211546,Traumatic complication of injury
+T80-T88,442019,Complication of procedure
+T90-T98,443403,Sequela
