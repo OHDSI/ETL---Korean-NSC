@@ -8,7 +8,7 @@
 * UTF-8
 
 ## Contributors
-* Seongwon Lee, Seng Chan You, Jaehyeong Cho, Soo-Yeon Cho, Hojun Park, Sungjae Park, Rae Woong Park
+* Seongwon Lee, Seng Chan You, Jaehyeong Cho, Soo-Yeon Cho, Hojun Park, Sungjae Jung, Rae Woong Park
 
 ## Information about NHIS-Korean National Sample Cohort
 * Lee et al., “Cohort Profile: The National Health Insurance Service–National Sample Cohort (NHIS-NSC), South Korea.” International Journal of Epidemiology, January 28, 2016, dyv319. doi:10.1093/ije/dyv319.
