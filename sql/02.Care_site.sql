@@ -38,7 +38,7 @@ Create table @ResultDatabaseSchema.CARE_SITE (
 INSERT INTO @ResultDatabaseSchema.CARE_SITE
 SELECT a.ykiho_id,
 	null as care_site_name,
-	case when a.ykiho_gubun_cd='10' then 4068130 --종합병원(Tertiary care hospital) 다시 돌려야 함!!
+	case when a.ykiho_gubun_cd='10' then 4068130 --종합병원(Tertiary care hospital) 
 		 when a.ykiho_gubun_cd between '20' and '27' then 4318944 --일반병원  Hospital
 		 when a.ykiho_gubun_cd='28' then 82020103 --요양병원  
 		 when a.ykiho_gubun_cd='29' then 4268912 --정신요양병원 Psychiatric hospital 
