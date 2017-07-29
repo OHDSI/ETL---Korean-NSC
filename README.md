@@ -12,3 +12,4 @@
 
 ## Information about NHIS-Korean National Sample Cohort
 * Lee et al., “Cohort Profile: The National Health Insurance Service–National Sample Cohort (NHIS-NSC), South Korea.” International Journal of Epidemiology, January 28, 2016, dyv319. doi:10.1093/ije/dyv319.
+https://academic.oup.com/ije/article-lookup/doi/10.1093/ije/dyv319
