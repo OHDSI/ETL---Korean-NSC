@@ -1,7 +1,7 @@
 /**************************************
  --encoding : UTF-8
- --Author: Ïù¥ÏÑ±Ïõê
- --Date: 2017.01.24
+ --Author: ¿Ãº∫ø¯, ¡∂¿Á«¸
+ --Date: 2017.09.12
  
  @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
  @NHIS_JK: JK table in NHIS NSC
@@ -10,72 +10,75 @@
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: Observation_period ÌÖåÏù¥Î∏î ÏÉùÏÑ±
+ --Description: Observation_period ≈◊¿Ã∫Ì ª˝º∫
  --Generating Table: OBSERVATION_PERIOD
 ***************************************/
 
 /**************************************
- 1. ÌÖåÏù¥Î∏î ÏÉùÏÑ±
-***************************************/ 
-CREATE TABLE @ResultDatabaseSchema.OBSERVATION_PERIOD ( 
-     observation_period_id				INTEGER	 IDENTITY(1,1)	NOT NULL , 
-     person_id							INTEGER		NOT NULL , 
-     observation_period_start_date		DATE		NOT NULL , 
-     observation_period_end_date		DATE		NOT NULL ,
-	 period_type_concept_id				INTEGER		NOT NULL
-    ) 
-/**************************************
- 2. Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•
-    1) Í¥ÄÏ∏°ÏãúÏûëÏùº: ÏûêÍ≤©ÎÖÑÎèÑ.01.01Ïù¥ ÎîîÌè¥Ìä∏. Ï∂úÏÉùÎÖÑÎèÑÍ∞Ä Í∑∏ Ïù¥Ï†ÑÏù¥Î©¥ Ï∂úÏÉùÎÖÑÎèÑ.01.01
-	2) Í¥ÄÏ∏°Ï¢ÖÎ£åÏùº: ÏûêÍ≤©ÎÖÑÎèÑ.12.31Ïù¥ ÎîîÌè¥Ìä∏. ÏÇ¨ÎßùÎÖÑÏõîÏù¥ Í∑∏ Ïù¥ÌõÑÎ©¥ ÏÇ¨ÎßùÎÖÑ.Ïõî.ÎßàÏßÄÎßâÎÇ†
+ 1. µ•¿Ã≈Õ ¿‘∑¬
+    1) ∞¸√¯Ω√¿€¿œ: ¿⁄∞›≥‚µµ.01.01¿Ã µ∆˙∆Æ. √‚ª˝≥‚µµ∞° ±◊ ¿Ã¿¸¿Ã∏È √‚ª˝≥‚µµ.01.01
+	2) ∞¸√¯¡æ∑·¿œ: ¿⁄∞›≥‚µµ.12.31¿Ã µ∆˙∆Æ. ªÁ∏¡≥‚ø˘¿Ã ±◊ ¿Ã»ƒ∏È ªÁ∏¡≥‚.ø˘.∏∂¡ˆ∏∑≥Ø
+	3) ªÁ∏¡ ¿Ã»ƒ ∞°¡ˆ¥¬ ¿⁄∞› ¡¶ø‹
 ***************************************/ 
 
-insert into @ResultDatabaseSchema.OBSERVATION_PERIOD
-	(person_id, observation_period_start_date, observation_period_end_date, period_type_concept_id)
-select 
-	a.person_id as person_id, 
-	case when a.min_stnd_y >= b.year_of_birth then convert(date, convert(varchar, a.min_stnd_y) + '0101', 112) 
-		else convert(date, convert(varchar, b.year_of_birth) + '0101', 112) 
-	end as observation_period_start_date, --Í¥ÄÏ∏°ÏãúÏûëÏùº
-	case when convert(date, a.max_stnd_y + '1231', 112) > c.death_date then c.death_date
-		else convert(date, a.max_stnd_y + '1231', 112)
-	end as observation_period_end_date, --Í¥ÄÏ∏°Ï¢ÖÎ£åÏùº
-	44814725 as period_type_concept_id
-from (select person_id, min(stnd_y) as min_stnd_y, max(stnd_y) as max_stnd_y 
-	from @NHISDatabaseSchema.@NHIS_JK
-	group by person_id) a,
-	@ResultDatabaseSchema.person b left join @ResultDatabaseSchema.death c
-	on b.person_id=c.person_id
-where a.person_id=b.person_id
 
-
-SELECT TOP 100 PERSON_ID, MIN(STND_Y),MAX(STND_Y), CAST(MAX(STND_Y) AS INT)- CAST(MIN(STND_Y) AS INT) +1, COUNT(DISTINCT STND_Y) FROM [nhid].[dbo].[ID02_13_JK] 
-GROUP BY PERSON_ID
-
-SELECT TOP 100 * FROM @NHISDatabaseSchema.@NHIS_JK
-
-
-insert into @ResultDatabaseSchema.OBSERVATION_PERIOD
-	(person_id, observation_period_start_date, observation_period_end_date, period_type_concept_id)
-
-select 
-	a.person_id as person_id, 
-	case when a.stnd_y >= b.year_of_birth then convert(date, convert(varchar, a.stnd_y) + '0101', 112) 
-		else convert(date, convert(varchar, b.year_of_birth) + '0101', 112) 
-	end as observation_period_start_date, --Í¥ÄÏ∏°ÏãúÏûëÏùº
-	case when convert(date, a.stnd_y + '1231', 112) > c.death_date then c.death_date
-		else convert(date, a.stnd_y + '1231', 112)
-	end as observation_period_end_date, --Í¥ÄÏ∏°Ï¢ÖÎ£åÏùº
-	44814725 as period_type_concept_id
-into #person_temp
+-- step 1
+select
+      a.person_id as person_id, 
+      case when a.stnd_y >= b.year_of_birth then convert(date, convert(varchar, a.stnd_y) + '0101', 112) 
+            else convert(date, convert(varchar, b.year_of_birth) + '0101', 112) 
+      end as observation_period_start_date, --∞¸√¯Ω√¿€¿œ
+      case when convert(date, a.stnd_y + '1231', 112) > c.death_date then c.death_date
+            else convert(date, a.stnd_y + '1231', 112)
+      end as observation_period_end_date --∞¸√¯¡æ∑·¿œ
+into #observation_period_temp1
 from @NHISDatabaseSchema.@NHIS_JK a,
-	@ResultDatabaseSchema.person b left join @ResultDatabaseSchema.death c
-	on b.person_id=c.person_id
+      @ResultDatabaseSchema.person b left join @ResultDatabaseSchema.death c
+      on b.person_id=c.person_id
 where a.person_id=b.person_id
+--(12132633∞≥ «‡¿Ã øµ«‚¿ª πﬁ¿Ω), 00:05
+
+-- step 2
+select *, row_number() over(partition by person_id order by observation_period_start_date, observation_period_end_date) AS id
+into #observation_period_temp2
+from #observation_period_temp1
+where observation_period_start_date < observation_period_end_date -- ªÁ∏¡ ¿Ã»ƒ ∞°¡ˆ¥¬ ¿⁄∞›¿ª ¡¶ø‹Ω√≈∞¥¬ ƒı∏Æ
+--(12132529∞≥ «‡¿Ã øµ«‚¿ª πﬁ¿Ω), 00:08
 
 
-SELECT person_id, MIN(observation_period_start_date), MAX(observation_period_end_date), 44814725 AS period_type_concept_id
-	--, ROW_NUMBER ()
-FROM #person_temp
-GROUP BY person_id
-	--WHERE 
+-- step 3
+select 
+	a.*, datediff(day, a.observation_period_end_date, b.observation_period_start_date) as days
+	into #observation_period_temp3
+	from #observation_period_temp2 a
+		left join
+		#observation_period_temp2 b
+		on a.person_id = b.person_id
+			and a.id = cast(b.id as int)-1
+	order by person_id, id
+--(12132529∞≥ «‡¿Ã øµ«‚¿ª πﬁ¿Ω), 00:15
+
+-- step 4
+select
+	a.*, CASE WHEN id=1 THEN 1
+   ELSE SUM(CASE WHEN DAYS>1 THEN 1 ELSE 0 END) OVER(PARTITION BY person_id ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)+1
+   END AS sumday
+   into #observation_period_temp4
+   from #observation_period_temp3 a
+   order by person_id, id
+--(12132529∞≥ «‡¿Ã øµ«‚¿ª πﬁ¿Ω), 00:12
+
+
+-- step 5
+select identity(int, 1, 1) as observation_period_id,
+	person_id,
+	min(observation_period_start_date) as observation_period_start_date,
+	max(observation_period_end_date) as observation_period_end_date,
+	44814725 as PERIOD_TYPE_CONCEPT_ID
+INTO @ResultDatabaseSchema.OBSERVATION_PERIOD
+from #observation_period_temp4
+group by person_id, sumday
+order by person_id, observation_period_start_date
+--(1256091∞≥ «‡¿Ã øµ«‚¿ª πﬁ¿Ω), 00:10
+
+drop table #observation_period_temp1, #observation_period_temp2, #observation_period_temp3, #observation_period_temp4
