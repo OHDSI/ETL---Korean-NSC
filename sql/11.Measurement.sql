@@ -1,7 +1,7 @@
 /**************************************
  --encoding : UTF-8
- --Author: 조재형
- --Date: 2017.04.11
+ --Author: 유승찬
+ --Date: 2017.09.26
  
  @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
  @NHIS_JK: JK table in NHIS NSC
@@ -215,3 +215,10 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 	where (a.meas_value != '' and substring(a.meas_type, 1, 30) in ('GLY_CD', 'OLIG_OCCU_CD', 'OLIG_PROTE_CD')
 			and c.source_table like 'GJT')
 ;
+
+/**************************************
+ 3.source_value의 값을 value_as_number에도 입력
+***************************************/ 
+UPDATE @ResultDatabaseSchema.MEASUREMENT
+SET value_as_number = measurement_source_value
+where measurement_source_value is not null
