@@ -52,7 +52,7 @@ SELECT
 	, drug_exposure_start_date
 	, days_supply
 	, drug_exposure_end_date
-	, datediff(day, drug_exposure_end_date, drug_exposure_start_date) AS days_of_exposure ---Calculates the days of exposure to the drug so at the end we can subtract the SUM of these days from the total days in the era.
+	, datediff(day, drug_exposure_start_date, drug_exposure_end_date) AS days_of_exposure ---Calculates the days of exposure to the drug so at the end we can subtract the SUM of these days from the total days in the era.
 into #cteDrugTarget1 FROM  #cteDrugPreTarget;
 
 
