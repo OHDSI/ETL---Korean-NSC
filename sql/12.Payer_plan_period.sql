@@ -1,33 +1,33 @@
-ï»¿/**************************************
+/**************************************
  --encoding : UTF-8
- --Author: ì¡°ì¬í˜•
- --Date: 2017.02.21
+ --Author: Á¶ÀçÇü
+ --Date: 2018.09.15
  
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
-@NHIS_JK: JK table in NHIS NSC
-@NHIS_20T: 20 table in NHIS NSC
-@NHIS_30T: 30 table in NHIS NSC
-@NHIS_40T: 40 table in NHIS NSC
-@NHIS_60T: 60 table in NHIS NSC
-@NHIS_GJ: GJ table in NHIS NSC
-@CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
-@DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
-@PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
-@DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @NHIS_JK: JK table in NHIS NSC
+ @NHIS_20T: 20 table in NHIS NSC
+ @NHIS_30T: 30 table in NHIS NSC
+ @NHIS_40T: 40 table in NHIS NSC
+ @NHIS_60T: 60 table in NHIS NSC
+ @NHIS_GJ: GJ table in NHIS NSC
+ @CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
+ @DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
+ @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: PAYER_PLAN_PERIOD í…Œì´ë¸” ìƒì„±
-			   1) payer_plan_period_id = person_id+ì—°ë„ 4ìë¡œ ì •ì˜
-			   2) payer_plan_period_start_date = ë‹¹í•´ 01ì›” 01ì¼ë¡œ ì •ì˜
-			   3) payer_plan_period_end_date = ë‹¹í•´ 12ì›” 31ì¼ í˜¹ì€ death dateë¡œ ì •ì˜
+ --Description: PAYER_PLAN_PERIOD Å×ÀÌºí »ı¼º
+			   1) payer_plan_period_id = person_id+¿¬µµ 4ÀÚ·Î Á¤ÀÇ
+			   2) payer_plan_period_start_date = ´çÇØ 01¿ù 01ÀÏ·Î Á¤ÀÇ
+			   3) payer_plan_period_end_date = ´çÇØ 12¿ù 31ÀÏ È¤Àº death date·Î Á¤ÀÇ
  --Generating Table: PAYER_PLAN_PERIOD
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„± 
+ 1. Å×ÀÌºí »ı¼º 
 ***************************************/ 
-
-CREATE TABLE @ResultDatabaseSchema.PAYER_PLAN_PERIOD
+`
+CREATE TABLE @NHISNSC_database.PAYER_PLAN_PERIOD
     (
      payer_plan_period_id				BIGINT						NOT NULL , 
      person_id							INTEGER						NOT NULL ,
@@ -41,10 +41,10 @@ CREATE TABLE @ResultDatabaseSchema.PAYER_PLAN_PERIOD
  
  
 /**************************************
- 2. ë°ì´í„° ì…ë ¥ ë° í™•ì¸ -- 02:57, (12132633ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ)
+ 2. µ¥ÀÌÅÍ ÀÔ·Â ¹× È®ÀÎ
 ***************************************/  
 
-INSERT INTO @ResultDatabaseSchema.PAYER_PLAN_PERIOD (payer_plan_period_id, person_id, payer_plan_period_start_date, payer_plan_period_end_date, payer_source_value, plan_source_value, family_source_value)
+INSERT INTO @NHISNSC_databse.PAYER_PLAN_PERIOD (payer_plan_period_id, person_id, payer_plan_period_start_date, payer_plan_period_end_date, payer_source_value, plan_source_value, family_source_value)
 	SELECT	a.person_id+STND_Y as payer_plan_period_id,
 			a.person_id as person_id,
 			cast(convert(VARCHAR, STND_Y + '0101' ,23) as date) as payer_plan_period_start_date,
@@ -56,5 +56,6 @@ INSERT INTO @ResultDatabaseSchema.PAYER_PLAN_PERIOD (payer_plan_period_id, perso
 			IPSN_TYPE_CD as plan_source_value,
 			family_source_value = null
 	FROM 
-			(select person_id, STND_Y, IPSN_TYPE_CD, cast(convert(VARCHAR, cast(YEAR as varchar) + '1231' ,23) as date) as year from @NHISDatabaseSchema.@NHIS_JK ) a left join @NHISDatabaseSchema.Death b
+			(select person_id, STND_Y, IPSN_TYPE_CD, cast(convert(VARCHAR, cast(STND_Y as varchar) + '1231' ,23) as date) as year from @NHISNSC_rawdata.@NHIS_JK) a left join @NHISNSC_database.DEATH b
 	  		on a.person_id=b.person_id
+

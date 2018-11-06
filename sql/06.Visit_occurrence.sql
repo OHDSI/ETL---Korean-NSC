@@ -1,23 +1,24 @@
 /**************************************
  --encoding : UTF-8
- --Author: ì´ì„±ì›
- --Date: 2017.01.26
+ --Author: ÀÌ¼º¿ø
+ --Date: 2018.09.10
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: Visit_occurrence í…Œì´ë¸” ìƒì„±
+ --Description: Visit_occurrence Å×ÀÌºí »ý¼º
  --Generating Table: VISIT_OCCURRENCE
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„±
+ 1. Å×ÀÌºí »ý¼º
 ***************************************/ 
-CREATE TABLE @ResultDatabaseSchema.VISIT_OCCURRENCE (
+CREATE TABLE @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_occurrence_id	bigint	primary key,
 	person_id			integer	not null,
 	visit_concept_id	integer	not null,
@@ -33,9 +34,9 @@ CREATE TABLE @ResultDatabaseSchema.VISIT_OCCURRENCE (
 );
 
 /**************************************
- 2. ë°ì´í„° ìž…ë ¥
+ 2. µ¥ÀÌÅÍ ÀÔ·Â
 ***************************************/ 
-insert into @ResultDatabaseSchema.VISIT_OCCURRENCE (
+insert into @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_occurrence_id, person_id, visit_concept_id, visit_start_date, visit_start_time,
 	visit_end_date, visit_end_time, visit_type_concept_id, provider_id, care_site_id,
 	visit_source_value, visit_source_concept_id
@@ -43,16 +44,18 @@ insert into @ResultDatabaseSchema.VISIT_OCCURRENCE (
 select 
 	key_seq as visit_concept_id,
 	person_id as person_id,
-	case when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type in ('11', '21', '31') then 9203 --ìž…ì› + ì‘ê¸‰
-		when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type not in ('11', '21', '31') then 9201 --ìž…ì› + ìž…ì›
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') then 9203 --ì™¸ëž˜ + ì‘ê¸‰
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type not in ('11', '21', '31') then 9202 --ì™¸ëž˜ + ì™¸ëž˜
+	case when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type in ('11', '21', '31') then 9203 --ÀÔ¿ø + ÀÀ±Þ
+		when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type not in ('11', '21', '31') then 9201 --ÀÔ¿ø + ÀÔ¿ø
+		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') then 9203 --¿Ü·¡ + ÀÀ±Þ
+		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type not in ('11', '21', '31') then 9202 --¿Ü·¡ + ¿Ü·¡
 		else 0
 	end as visit_concept_id,
 	convert(date, recu_fr_dt, 112) as visit_start_date,
 	null as visit_start_time,
-	case when form_cd in ('02', '04', '06', '07', '10', '12') then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112)) 
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
+	case when form_cd in ('02', '04', '06', '07', '10', '12') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
+		when form_cd in ('02', '04', '06', '07', '10', '12') and VSCN = 0 then DATEADD(DAY, convert(int, vscn)  ,convert(date, recu_fr_dt, 112)) 
+		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
+		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN = 0 then DATEADD(DAY, convert(int, vscn), convert(date, recu_fr_dt, 112))
 		else convert(date, recu_fr_dt, 112)
 	end as visit_end_date,
 	null as visit_end_time,
@@ -61,12 +64,11 @@ select
 	ykiho_id as care_site_id,
 	key_seq as visit_source_value,
 	null as visit_source_concept_id
-from @NHISDatabaseSchema.@NHIS_20T
+from @NHISNSC_rawdata.@NHIS_20T
 ;
 
-
---ê±´ê°•ê²€ì§„ INSERT
-insert into @ResultDatabaseSchema.VISIT_OCCURRENCE (
+--°Ç°­°ËÁø INSERT
+insert into @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_occurrence_id, person_id, visit_concept_id, visit_start_date, visit_start_time,
 	visit_end_date, visit_end_time, visit_type_concept_id, provider_id, care_site_id,
 	visit_source_value, visit_source_concept_id
@@ -84,5 +86,6 @@ select
 	null as care_site_id,
 	b.master_seq as visit_source_value,
 	null as visit_source_concept_id
-from @NHISDatabaseSchema.@NHIS_GJ a JOIN @ResultDatabaseSchema.seq_master b on a.person_id=b.person_id and a.hchk_year=b.hchk_year
+from @NHISNSC_rawdata.@NHIS_GJ a JOIN @NHISNSC_database.seq_master b on a.person_id=b.person_id and a.hchk_year=b.hchk_year
 ;
+

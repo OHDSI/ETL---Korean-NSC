@@ -1,38 +1,38 @@
-ï»¿/**************************************
+/**************************************
  --encoding : UTF-8
- --Author: ì¡°ìž¬í˜•
- --Date: 2017.02.15
+ --Author: Á¶ÀçÇü
+ --Date: 2018.09.12
  
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
-@NHIS_JK: JK table in NHIS NSC
-@NHIS_20T: 20 table in NHIS NSC
-@NHIS_30T: 30 table in NHIS NSC
-@NHIS_40T: 40 table in NHIS NSC
-@NHIS_60T: 60 table in NHIS NSC
-@NHIS_GJ: GJ table in NHIS NSC
-@CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
-@DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
-@PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
-@DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @NHISNSC_rawdata: DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @NHIS_JK: JK table in NHIS NSC
+ @NHIS_20T: 20 table in NHIS NSC
+ @NHIS_30T: 30 table in NHIS NSC
+ @NHIS_40T: 40 table in NHIS NSC
+ @NHIS_60T: 60 table in NHIS NSC
+ @NHIS_GJ: GJ table in NHIS NSC
+ @CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
+ @DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
+ @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: device í…Œì´ë¸” ìƒì„±
-			   1) device_exposure_end_dateëŠ” drug_exposureì˜ end_dateì™€ ê°™ì€ ë°©ë²•ìœ¼ë¡œ ìƒì„±
-			   2) quantityì˜ ê²½ìš° ë‹¨ê°€(UN_COST) í˜¹ì€ ê¸ˆì•¡(AMT)ì´ ë¹„ì •ìƒì´ê±°ë‚˜, ì‚¬ìš©ëŸ‰(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ì´ ë¹„ì •ìƒì¸ ê²½ìš°ê°€ ë§Žê³ ,
-				  ì •ìˆ˜ê°€ ì•„ë‹Œ ê²½ìš°ê°€ ë§ŽìŒ(ë©”ë””í¼ì„ ìž˜ë¼ì„œ ì“°ëŠ” ê²½ìš° ë“±) 
-					1. ë‹¨ê°€(UN_COST)ì™€ ê¸ˆì•¡(AMT)ì´ ì •ìƒì¸ ê²½ìš° (Nullì´ ì•„ë‹ˆê±°ë‚˜ 0ì›ì´ ì•„ë‹Œ ê²½ìš°) AMT/UN_COST
-					2. ë‹¨ê°€(UN_COST)ì™€ ê¸ˆì•¡(AMT)ì´ ì •ìƒì´ ì•„ë‹Œ ê²½ìš°(0, Null, UN_COST>AMT) 30tì˜ ê²½ìš° ì‚¬ìš©ëŸ‰(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ì˜ ê³±ìœ¼ë¡œ,
-					   60tì˜ ê²½ìš° ì‚¬ìš©ëŸ‰ (DD_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ì˜ ê³±ìœ¼ë¡œ ê³„ì‚°
-					3. ë‹¨ê°€, ê¸ˆì•¡, ì‚¬ìš©ëŸ‰ ëª¨ë‘ ë¹„ì •ìƒ(0ì¸ ê²½ìš°)ì¼ ê²½ìš° 1ë¡œ ì •ì˜
+ --Description: device Å×ÀÌºí »ý¼º
+			   1) device_exposure_end_date´Â drug_exposureÀÇ end_date¿Í °°Àº ¹æ¹ýÀ¸·Î »ý¼º
+			   2) quantityÀÇ °æ¿ì ´Ü°¡(UN_COST) È¤Àº ±Ý¾×(AMT)ÀÌ ºñÁ¤»óÀÌ°Å³ª, »ç¿ë·®(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ÀÌ ºñÁ¤»óÀÎ °æ¿ì°¡ ¸¹°í,
+				  Á¤¼ö°¡ ¾Æ´Ñ °æ¿ì°¡ ¸¹À½(¸ÞµðÆûÀ» Àß¶ó¼­ ¾²´Â °æ¿ì µî) 
+					1. ´Ü°¡(UN_COST)¿Í ±Ý¾×(AMT)ÀÌ Á¤»óÀÎ °æ¿ì (NullÀÌ ¾Æ´Ï°Å³ª 0¿øÀÌ ¾Æ´Ñ °æ¿ì) AMT/UN_COST
+					2. ´Ü°¡(UN_COST)¿Í ±Ý¾×(AMT)ÀÌ Á¤»óÀÌ ¾Æ´Ñ °æ¿ì(0, Null, UN_COST>AMT) 30tÀÇ °æ¿ì »ç¿ë·®(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ÀÇ °öÀ¸·Î,
+					   60tÀÇ °æ¿ì »ç¿ë·® (DD_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)ÀÇ °öÀ¸·Î °è»ê
+					3. ´Ü°¡, ±Ý¾×, »ç¿ë·® ¸ðµÎ ºñÁ¤»ó(0ÀÎ °æ¿ì)ÀÏ °æ¿ì 1·Î Á¤ÀÇ
  --Generating Table: Device_exposure
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„± 
+ 1. Å×ÀÌºí »ý¼º 
 ***************************************/ 
  
 
-CREATE TABLE @ResultDatabaseSchema.DEVICE_EXPOSURE ( 
+CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE ( 
      device_exposure_id				BIGINT	 		PRIMARY KEY , 
      person_id						INTEGER			NOT NULL , 
      divce_concept_id				INTEGER			NOT NULL , 
@@ -48,17 +48,17 @@ CREATE TABLE @ResultDatabaseSchema.DEVICE_EXPOSURE (
     );
 
 /**************************************
- 2. ë°ì´í„° ìž…ë ¥ ë° í™•ì¸ (30t : 8515647ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ, 03:53, ë§¤í•‘ì´ ì•ˆë¼ì„œ/ 60t : 72ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ, 00:48, ë§¤í•‘ì´ ì•ˆë¼ì„œ) ì´ 8,515,719ê±´
+ 2. µ¥ÀÌÅÍ ÀÔ·Â ¹× È®ÀÎ
 ***************************************/  
 
---30t ìž…ë ¥ (8515647ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ) 02:51
-insert into @ResultDatabaseSchema.DEVICE_EXPOSURE
+--30t ÀÔ·Â 
+insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, divce_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select	convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.concept_id))) as device_exposure_id,
+select  convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
-		b.concept_id as device_concept_id ,
+		b.target_concept_id as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
 		CONVERT(VARCHAR, DATEADD(DAY, a.mdcn_exec_freq-1, a.recu_fr_dt),23) as device_source_end_date,
 		44818705 as device_type_concept_id,
@@ -78,23 +78,21 @@ FROM
 			case when x.dd_mqty_exec_freq is not null and x.dd_mqty_exec_freq > '0' and isnumeric(x.dd_mqty_exec_freq)=1 then cast(x.dd_mqty_exec_freq as float) else 1 end as dd_mqty_exec_freq,
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISDatabaseSchema.@NHIS_30T x, @ResultDatabaseSchema.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_30T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a JOIN @ResultDatabaseSchema.@DEVICE_MAPPINGTABLE b 
-ON a.div_cd=b.sourcecode
+	AND x.seq_no=y.seq_no) a JOIN (select * from @NHISNSC_database.@SOURCE_TO_CONCEPT_MAP where domain_id='device' and invalid_reason is null) b 
+ON a.div_cd=b.source_code
+;
 
-
-
-
---60t ìž…ë ¥ (72ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ) 00:46
-insert into @ResultDatabaseSchema.DEVICE_EXPOSURE
+--60t ÀÔ·Â 
+insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, divce_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select	convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.concept_id))) as device_exposure_id,
+select 	convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
-		b.concept_id as device_concept_id ,
+		b.target_concept_id as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
 		CONVERT(VARCHAR, DATEADD(DAY, a.mdcn_exec_freq-1, a.recu_fr_dt),23) as device_source_end_date,
 		44818705 as device_type_concept_id,
@@ -114,21 +112,21 @@ FROM
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and x.dd_exec_freq > '0' and isnumeric(x.dd_exec_freq)=1 then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISDatabaseSchema.@NHIS_60T x, @ResultDatabaseSchema.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_60T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a JOIN @ResultDatabaseSchema.@DEVICE_MAPPINGTABLE b
-ON a.div_cd=b.sourcecode
+	AND x.seq_no=y.seq_no) a JOIN (select * from @NHISNSC_database.@SOURCE_TO_CONCEPT_MAP where domain_id='device' and invalid_reason is null) b
+ON a.div_cd=b.source_code
+;
 
-
--- quantityê°€ 0ì¸ ê²½ìš° 1ë¡œ ë³€ê²½ (6268ê°œ í–‰ì´ ì˜í–¥ì„ ë°›ìŒ) 00:04
-update @ResultDatabaseSchema.DEVICE_EXPOSURE
+-- quantity°¡ 0ÀÎ °æ¿ì 1·Î º¯°æ 
+update @NHISNSC_database.DEVICE_EXPOSURE
 set quantity = 1
 where quantity = 0
+;
 
 
-
-/******************* quantity 0ì¸ ê²½ìš° 1ë¡œ ë³€ê²½í•˜ê¸° ì „ ê²°ê³¼ í™•ì¸*********************
-select * from @ResultDatabaseSchema.device_exposure where quantity=0 -- ë³€ê²½ ì „ -> 6268(ì •ë§¥ë‚´ìœ ì¹˜ì¹¨5275ê±´) / ë³€ê²½ í›„ -> 0
-select * from @ResultDatabaseSchema.device_exposure where quantity=1 -- ë³€ê²½ ì „ -> 4548117 / ë³€ê²½ í›„ -> 4554385
+/******************* quantity 0ÀÎ °æ¿ì 1·Î º¯°æÇÏ±â Àü °á°ú È®ÀÎ*********************
+select * from @ResultDatabaseSchema.device_exposure where quantity=0 -- º¯°æ Àü -> 6268(Á¤¸Æ³»À¯Ä¡Ä§5275°Ç) / º¯°æ ÈÄ -> 0
+select * from @ResultDatabaseSchema.device_exposure where quantity=1 -- º¯°æ Àü -> 4548117 / º¯°æ ÈÄ -> 4554385
 *************************************************************************************/
