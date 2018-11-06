@@ -1,26 +1,27 @@
 /**************************************
  --encoding : UTF-8
- --Author: ì´ì„±ì›
- --Date: 2017.01.20
+ --Author: ÀÌ¼º¿ø, ¹ÚÁö¸í
+ --Date: 2018.09.01
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: Person í…Œì´ë¸” ìƒì„±
-			   1) í‘œë³¸ì½”í˜¸íŠ¸DBì—ëŠ” personì´ ë…„ë„ë³„ë¡œ ì¤‘ë³µ ì…ë ¥ë˜ì–´ ìˆìŒ. ì‚¬ëŒë“¤ì˜ ì†Œë“ìˆ˜ì¤€ ë³€í™”ì§€ì—­ì´ë™, ì„¤ë¦½êµ¬ë¶„ì˜ ë³€í™”ë“±ì´ ì¶”ì  ê°€ëŠ¥í•¨
-			      í•˜ì§€ë§Œ, CDMì—ì„œëŠ” 1ê°œì˜ personì´ ë“¤ì–´ê°€ì•¼ í•˜ë¯€ë¡œ, ìµœê·¼ person ë°ì´í„°ë¥¼ ë³€í™˜í•¨
-			   2) ì¶œìƒë…„ë„ë¥¼ 5ë…„ ê°„ê²© ì—°ë ¹ëŒ€ ë°ì´í„°ë¥¼ ì´ìš©í•˜ì—¬ ì¶”ì •, ì…ë ¥
+ --Description: Person Å×ÀÌºí »ı¼º
+			   1) Ç¥º»ÄÚÈ£Æ®DB¿¡´Â personÀÌ ³âµµº°·Î Áßº¹ ÀÔ·ÂµÇ¾î ÀÖÀ½. »ç¶÷µéÀÇ ¼Òµæ¼öÁØ º¯È­Áö¿ªÀÌµ¿, ¼³¸³±¸ºĞÀÇ º¯È­µîÀÌ ÃßÀû °¡´ÉÇÔ
+			      ÇÏÁö¸¸, CDM¿¡¼­´Â 1°³ÀÇ personÀÌ µé¾î°¡¾ß ÇÏ¹Ç·Î, ÃÖ±Ù person µ¥ÀÌÅÍ¸¦ º¯È¯ÇÔ
+			   2) Ãâ»ı³âµµ¸¦ 5³â °£°İ ¿¬·É´ë µ¥ÀÌÅÍ¸¦ ÀÌ¿ëÇÏ¿© ÃßÁ¤, ÀÔ·Â
  --Generating Table: PERSON
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„±
+ 1. Å×ÀÌºí »ı¼º
 ***************************************/  
-CREATE TABLE @ResultDatabaseSchema.PERSON (
+CREATE TABLE @NHISNSC_database.PERSON (
      person_id						INTEGER		PRIMARY key , 
      gender_concept_id				INTEGER		NOT NULL , 
      year_of_birth					INTEGER		NOT NULL , 
@@ -43,15 +44,15 @@ CREATE TABLE @ResultDatabaseSchema.PERSON (
 
 
 /**************************************
- 2. ë°ì´í„° ì…ë ¥
-	: 5ë…„ ê°„ê²©ì˜ ì—°ë ¹ëŒ€ë¥¼ ì´ìš©í•´ ì¶œìƒë…„ë„ë¥¼ ì¶”ì •í•´ì•¼ í•¨.
-	  ì´ 8ê°œì˜ ì¶”ì • í¬ì¸íŠ¸ì— ë§ì¶° 8ê°œì˜ ì¿¼ë¦¬ë¥¼ ë”°ë¡œ ì‹¤í–‰
+ 2. µ¥ÀÌÅÍ ÀÔ·Â
+	: 5³â °£°İÀÇ ¿¬·É´ë¸¦ ÀÌ¿ëÇØ Ãâ»ı³âµµ¸¦ ÃßÁ¤ÇØ¾ß ÇÔ.
+	  ÃÑ 8°³ÀÇ ÃßÁ¤ Æ÷ÀÎÆ®¿¡ ¸ÂÃç 8°³ÀÇ Äõ¸®¸¦ µû·Î ½ÇÇà
 ***************************************/  
 
 /**
-	1) 1ê°œ ì´ìƒ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ìˆìŒ
+	1) 1°³ ÀÌ»ó ±¸°£ + 5°³ Ç® ±¸°£ ÀÖÀ½			
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -64,8 +65,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -76,18 +77,18 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select x.person_id, min(x.stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK x, (
+	from @NHISNSC_rawdata.@NHIS_JK x, (
 	select person_id, max(age_group) as age_group
 	from (
 		select distinct person_id, age_group
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
-				select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-				from @NHISDatabaseSchema.@NHIS_JK
+				select person_id, age_group, count(age_group) as age_group_cnt, min(stnd_y) as min_year, max(stnd_y) as max_year -- min(), max()ÀÇ year´Â ¾îµğ¼­? => stnd_y·Î º¯°æ
+				from @NHISNSC_rawdata.@NHIS_JK
 				group by person_id, age_group
 			) a
 			group by person_id
@@ -99,23 +100,23 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 	group by person_id) y
 	where x.person_id=y.person_id
 	and x.age_group=y.age_group
-	group by x.person_id, y.person_id, x.age_group, y.age_group) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	group by x.person_id, y.person_id, x.age_group, y.age_group) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.PERSON_ID
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 /**
-	2) 1ê°œ ì´ìƒ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì—†ìŒ + 0êµ¬ê°„ í¬í•¨
-		: ìê²© í…Œì´ë¸” ì „ì²´ì— 0êµ¬ê°„ì´ 2ê°œ ì´ìƒì¸ ì‚¬ëŒì´ 12ëª… ìˆìŒ. ì´ì— 0êµ¬ê°„ ì¤‘ min(stnd_y)ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì¶œìƒë…„ë„ë¥¼ ì •í•¨
+	2) 1°³ ÀÌ»ó ±¸°£ + 5°³ Ç® ±¸°£ ¾øÀ½ + 0±¸°£ Æ÷ÇÔ					
+		: ÀÚ°İ Å×ÀÌºí ÀüÃ¼¿¡ 0±¸°£ÀÌ 2°³ ÀÌ»óÀÎ »ç¶÷ÀÌ 12¸í ÀÖÀ½. ÀÌ¿¡ 0±¸°£ Áß min(stnd_y)¸¦ ±âÁØÀ¸·Î Ãâ»ı³âµµ¸¦ Á¤ÇÔ
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -128,8 +129,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -140,24 +141,24 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select x.person_id, min(x.stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK x, (
+	from @NHISNSC_rawdata.@NHIS_JK x, (
 		select distinct person_id
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where age_group=0
 		and person_id in (
 		select person_id
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year  -- min(), max()ÀÇ year¸¦ stnd_y·Î º¯°æÇØÁÜ
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -165,7 +166,7 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -178,25 +179,25 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 		) ) y
 	where x.person_id=y.person_id
 	and x.age_group=0
-	group by x.person_id) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	group by x.person_id) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 
 /**
-	3-1) 1ê°œ ì´ìƒ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì—†ìŒ + 0êµ¬ê°„ ë¹„í¬í•¨ + êµ¬ê°„ ë³€ê²½ ì‹œì ì— ë…„ë„ê°€ ì—°ì†
-	: ì´ 76,594 ê±´
+	3-1) 1°³ ÀÌ»ó ±¸°£ + 5°³ Ç® ±¸°£ ¾øÀ½ + 0±¸°£ ºñÆ÷ÇÔ + ±¸°£ º¯°æ ½ÃÁ¡¿¡ ³âµµ°¡ ¿¬¼Ó			
+
 */
--- ì—°ì† êµ¬ê°„ ë°ì´í„°
-INSERT INTO @ResultDatabaseSchema.PERSON
+-- ¿¬¼Ó ±¸°£ µ¥ÀÌÅÍ
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -209,8 +210,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	d3.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -221,26 +222,26 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK d1, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 (select x.person_id, min(y.min_stnd_y) as stnd_y
 from 
 
 (
 select distinct m.person_id, m.age_group, min(m.stnd_y) as min_stnd_y, max(m.stnd_y) as max_stnd_y
-from @NHISDatabaseSchema.@NHIS_JK m, 
+from @NHISNSC_rawdata.@NHIS_JK m, 
 (select distinct person_id, min_age_group
 from (
 	select person_id, min(age_group) as min_age_group
 	from (
 	select person_id, age_group, count(age_group) as age_group_cnt
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id in (
 		select distinct person_id
 		from (
 			select distinct person_id
 			from (
-				select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-				from @NHISDatabaseSchema.@NHIS_JK
+				select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year -- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+				from @NHISNSC_rawdata.@NHIS_JK
 				group by person_id, age_group
 			) a
 			group by person_id
@@ -248,7 +249,7 @@ from (
 		) b
 		where b.person_id not in (
 			select person_id 
-			from @NHISDatabaseSchema.@NHIS_JK
+			from @NHISNSC_rawdata.@NHIS_JK
 			where person_id =b.person_id
 			group by person_id, age_group
 			having count(age_group) = 5
@@ -261,7 +262,7 @@ from (
 ) y
 where y.person_id not in (
 select distinct person_id
-from @NHISDatabaseSchema.@NHIS_JK
+from @NHISNSC_rawdata.@NHIS_JK
 where person_id=y.person_id
 and age_group=0)) n
 where m.person_id=n.person_id
@@ -270,20 +271,20 @@ group by m.person_id, m.age_group
 
 (
 select distinct m.person_id, m.age_group, min(m.stnd_y) as min_stnd_y, max(m.stnd_y) as max_stnd_y
-from @NHISDatabaseSchema.@NHIS_JK m, 
+from @NHISNSC_rawdata.@NHIS_JK m, 
 (select distinct person_id, min_age_group
 from (
 	select person_id, min(age_group) as min_age_group
 	from (
 	select person_id, age_group, count(age_group) as age_group_cnt
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id in (
 		select distinct person_id
 		from (
 			select distinct person_id
 			from (
-				select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-				from @NHISDatabaseSchema.@NHIS_JK
+				select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year -- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+				from @NHISNSC_rawdata.@NHIS_JK
 				group by person_id, age_group
 			) a
 			group by person_id
@@ -291,7 +292,7 @@ from (
 		) b
 		where b.person_id not in (
 			select person_id 
-			from @NHISDatabaseSchema.@NHIS_JK
+			from @NHISNSC_rawdata.@NHIS_JK
 			where person_id =b.person_id
 			group by person_id, age_group
 			having count(age_group) = 5
@@ -304,7 +305,7 @@ from (
 ) y
 where y.person_id not in (
 select distinct person_id
-from @NHISDatabaseSchema.@NHIS_JK
+from @NHISNSC_rawdata.@NHIS_JK
 where person_id=y.person_id
 and age_group=0)) n
 where m.person_id=n.person_id
@@ -315,26 +316,25 @@ where x.person_id=y.person_id
 and x.age_group + 1=y.age_group
 and x.max_stnd_y + 1=y.min_stnd_y
 
-group by x.person_id) d2, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+group by x.person_id) d2, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) d3 --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) d3 --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where d1.person_id=d2.person_id
 and d1.stnd_y=d2.stnd_y
 and d1.person_id=d3.person_id
-
+;
 
 /**
-	3-2) 1ê°œ ì´ìƒ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì—†ìŒ + 0êµ¬ê°„ ë¹„í¬í•¨ + êµ¬ê°„ ë³€ê²½ ì‹œì ì— ë…„ë„ê°€ ë¹„ì—°ì†
-	: ìƒˆ êµ¬ê°„ ì‹œì‘ë…„ë„ì— êµ¬ê°„ëŒ€ê°€ ì‹œì‘ëœ ê²ƒìœ¼ë¡œ ì¶”ì •í•¨
-	: ì´ 2,862 ê±´
+	3-2) 1°³ ÀÌ»ó ±¸°£ + 5°³ Ç® ±¸°£ ¾øÀ½ + 0±¸°£ ºñÆ÷ÇÔ + ±¸°£ º¯°æ ½ÃÁ¡¿¡ ³âµµ°¡ ºñ¿¬¼Ó	
+	: »õ ±¸°£ ½ÃÀÛ³âµµ¿¡ ±¸°£´ë°¡ ½ÃÀÛµÈ °ÍÀ¸·Î ÃßÁ¤ÇÔ
 */
--- ì—°ì† êµ¬ê°„ ë°ì´í„°
-INSERT INTO @ResultDatabaseSchema.PERSON
+-- ¿¬¼Ó ±¸°£ µ¥ÀÌÅÍ
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -347,8 +347,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	d3.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -359,10 +359,10 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK d1, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(
 	select s1.person_id, s1.age_group, min(s1.stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK s1,
+	from @NHISNSC_rawdata.@NHIS_JK s1,
 	(
 	select distinct person_id, max_age_group, min_age_group
 	from (
@@ -371,14 +371,14 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 		select person_id, max(age_group) as max_age_group, min(age_group) as min_age_group
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year -- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -386,7 +386,7 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -399,32 +399,30 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 	) y
 	where y.person_id not in (
 	select distinct person_id
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id=y.person_id
 	and age_group=0)) x
 	where person_id not in (
 
-
-	-- 
 	select distinct x.person_id
 	from 
 
 	(
 	select distinct m.person_id, m.age_group, min(m.stnd_y) as min_stnd_y, max(m.stnd_y) as max_stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK m, 
+	from @NHISNSC_rawdata.@NHIS_JK m, 
 	(select distinct person_id, min_age_group
 	from (
 		select person_id, min(age_group) as min_age_group
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year	-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -432,7 +430,7 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -445,7 +443,7 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 	) y
 	where y.person_id not in (
 	select distinct person_id
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id=y.person_id
 	and age_group=0)) n
 	where m.person_id=n.person_id
@@ -454,20 +452,20 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 
 	(
 	select distinct m.person_id, m.age_group, min(m.stnd_y) as min_stnd_y, max(m.stnd_y) as max_stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK m, 
+	from @NHISNSC_rawdata.@NHIS_JK m, 
 	(select distinct person_id, min_age_group
 	from (
 		select person_id, min(age_group) as min_age_group
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year	-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -475,7 +473,7 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -488,7 +486,7 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 	) y
 	where y.person_id not in (
 	select distinct person_id
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id=y.person_id
 	and age_group=0)) n
 	where m.person_id=n.person_id
@@ -503,28 +501,28 @@ from @NHISDatabaseSchema.@NHIS_JK d1, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” pers
 	where s1.person_id=s2.person_id
 	and s1.age_group=s2.min_age_group
 	group by s1.person_id, s1.age_group
-	) d2, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	) d2, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) d3 --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) d3 --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 
 where d1.person_id=d2.person_id
 and d1.stnd_y=d2.stnd_y
 and d1.person_id=d3.person_id
-
+;
 
 
 /**
-	4) 1ê°œ ì´ìƒ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì—†ìŒ + ë§¥ìŠ¤ êµ¬ê°„ ë°ì´í„° ê±´ìˆ˜ê°€ 5ê°œë³´ë‹¤ ë§ìŒ
-		: ë§¥ìŠ¤ êµ¬ê°„ì´ ìµœê³ ë ¹ êµ¬ê°„ëŒ€ê°€ ì•„ë‹Œ ë°ì´í„°ê°€ 236ê±´
-		: ë™ì¼í•˜ê²Œ ë§¥ìŠ¤ êµ¬ê°„ì˜ min(stnd_y)ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì¶œìƒë…„ë„ ì¶”ì •
+	4) 1°³ ÀÌ»ó ±¸°£ + 5°³ Ç® ±¸°£ ¾øÀ½ + ¸Æ½º ±¸°£ µ¥ÀÌÅÍ °Ç¼ö°¡ 5°³º¸´Ù ¸¹À½					
+		: ¸Æ½º ±¸°£ÀÌ ÃÖ°í·É ±¸°£´ë°¡ ¾Æ´Ñ µ¥ÀÌÅÍ°¡ 236°Ç
+		: µ¿ÀÏÇÏ°Ô ¸Æ½º ±¸°£ÀÇ min(stnd_y)¸¦ ±âÁØÀ¸·Î Ãâ»ı³âµµ ÃßÁ¤
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO	@NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -537,8 +535,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -549,20 +547,20 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select x.person_id, min(stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK x, (
+	from @NHISNSC_rawdata.@NHIS_JK x, (
 		select distinct person_id, age_group
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year	-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -570,7 +568,7 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -584,24 +582,24 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 	where x.PERSON_ID=y.PERSON_ID
 	and x.age_group=y.age_group
 	group by x.person_id, x.age_group
-	) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 
 /**
-	5) 1ê°œ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ì„
-	: 2002ë…„ì— ìµœê³ ë ¹ êµ¬ê°„ì— í¬í•¨ë˜ì–´ 5ë…„ì§¸ ì‚¬ë§í•œ ì‚¬ëŒ ë°ì´í„° ìˆìŒ. ì •í™•í•œ ì¶”ì • ë¶ˆê°€ëŠ¥
+	5) 1°³ ±¸°£ + 5°³ Ç® ±¸°£ÀÓ
+	: 2002³â¿¡ ÃÖ°í·É ±¸°£¿¡ Æ÷ÇÔµÇ¾î 5³âÂ° »ç¸ÁÇÑ »ç¶÷ µ¥ÀÌÅÍ ÀÖÀ½. Á¤È®ÇÑ ÃßÁ¤ ºÒ°¡´É
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -614,8 +612,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -626,38 +624,38 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 (select person_id, age_group, min(stnd_y) as stnd_y
-from @NHISDatabaseSchema.@NHIS_JK
+from @NHISNSC_rawdata.@NHIS_JK
 where person_id in (
 	select distinct person_id
 	from (
-		select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-		from @NHISDatabaseSchema.@NHIS_JK
+		select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year		-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id, age_group
 	) a
 	group by person_id
 	having count(person_id)=1
 )
 group by person_id, age_group
-having count(age_group) = 5) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+having count(age_group) = 5) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 (select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 
 /**
-	6) 1ê°œ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì•„ë‹˜ + 0êµ¬ê°„ í¬í•¨
-	: 0 êµ¬ê°„ ë°ì´í„°ê°€ 2ê°œì¸ ë°ì´í„° 1ê±´ ìˆìŒ
+	6) 1°³ ±¸°£ + 5°³ Ç® ±¸°£ ¾Æ´Ô + 0±¸°£ Æ÷ÇÔ							
+	: 0 ±¸°£ µ¥ÀÌÅÍ°¡ 2°³ÀÎ µ¥ÀÌÅÍ 1°Ç ÀÖÀ½
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -670,8 +668,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -682,22 +680,22 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select person_id, min(stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where age_group=0
 	and person_id in (
 	select person_id
 	from (
 	select person_id, age_group, count(age_group) as age_group_cnt
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id in (
 		select distinct person_id
 		from (
 			select distinct person_id
 			from (
-				select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-				from @NHISDatabaseSchema.@NHIS_JK
+				select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year		-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+				from @NHISNSC_rawdata.@NHIS_JK
 				group by person_id, age_group
 			) a
 			group by person_id
@@ -705,7 +703,7 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 		) b
 		where b.person_id not in (
 			select person_id 
-			from @NHISDatabaseSchema.@NHIS_JK
+			from @NHISNSC_rawdata.@NHIS_JK
 			where person_id =b.person_id
 			group by person_id, age_group
 			having count(age_group) = 5
@@ -716,25 +714,25 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 	group by x.person_id
 	having max(x.age_group_cnt) < 5
 	) 
-	group by person_id) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	group by person_id) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 
 /**
-	7) 1ê°œ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì•„ë‹˜ + 0êµ¬ê°„ ë¹„í¬í•¨
-	: ì •í™•í•œ ì¶”ì • ë¶ˆê°€
-	: êµ¬ê°„ ì‹œì‘ ë…„ë„ì— êµ¬ê°„ëŒ€ì˜ ìµœì†Œê°’ì„ ê°–ë„ë¡ ì¶”ì •í•¨ (ì˜ˆ: 2002ë…„ì— 20~24ì„¸ êµ¬ê°„ì´ë©´, 2002ë…„ì— 22ì„¸ë¡œ ì¶”ì •)
+	7) 1°³ ±¸°£ + 5°³ Ç® ±¸°£ ¾Æ´Ô + 0±¸°£ ºñÆ÷ÇÔ
+	: Á¤È®ÇÑ ÃßÁ¤ ºÒ°¡
+	: ±¸°£ ½ÃÀÛ ³âµµ¿¡ ±¸°£´ëÀÇ ÃÖ¼Ò°ªÀ» °®µµ·Ï ÃßÁ¤ÇÔ (¿¹: 2002³â¿¡ 20~24¼¼ ±¸°£ÀÌ¸é, 2002³â¿¡ 22¼¼·Î ÃßÁ¤)		
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -747,8 +745,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -759,22 +757,22 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select x.person_id, x.age_group, min(x.stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK x,
+	from @NHISNSC_rawdata.@NHIS_JK x,
 	(select person_id, age_group
 	from (
 		select person_id, min(age_group) as age_group
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (												
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year		-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -782,7 +780,7 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -795,30 +793,30 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 	) y					
 	where y.person_id not in (
 	select distinct person_id
-	from @NHISDatabaseSchema.@NHIS_JK
+	from @NHISNSC_rawdata.@NHIS_JK
 	where person_id=y.person_id
 	and age_group=0)) y
 	where x.person_id=y.person_id
 	and x.age_group=y.age_group
-	group by x.person_id, x.age_group) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	group by x.person_id, x.age_group) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
-
+;
 
 /**
-	8) 1ê°œ êµ¬ê°„ + 5ê°œ í’€ êµ¬ê°„ ì•„ë‹˜ + êµ¬ê°„ ê±´ìˆ˜ê°€ 5ê°œë³´ë‹¤ ë§ìŒ
-	: ì •í™•í•œ ì¶”ì • ë¶ˆê°€
-	: êµ¬ê°„ ì‹œì‘ ë…„ë„ì— êµ¬ê°„ëŒ€ì˜ ì¤‘ê°„ê°’ì„ ê°–ë„ë¡ ì¶”ì •í•¨ (ì˜ˆ: 2002ë…„ì— 20~24ì„¸ êµ¬ê°„ì´ë©´, 2002ë…„ì— 22ì„¸ë¡œ ì¶”ì •)
+	8) 1°³ ±¸°£ + 5°³ Ç® ±¸°£ ¾Æ´Ô + ±¸°£ °Ç¼ö°¡ 5°³º¸´Ù ¸¹À½							
+	: Á¤È®ÇÑ ÃßÁ¤ ºÒ°¡
+	: ±¸°£ ½ÃÀÛ ³âµµ¿¡ ±¸°£´ëÀÇ Áß°£°ªÀ» °®µµ·Ï ÃßÁ¤ÇÔ (¿¹: 2002³â¿¡ 20~24¼¼ ±¸°£ÀÌ¸é, 2002³â¿¡ 22¼¼·Î ÃßÁ¤)
 */
-INSERT INTO @ResultDatabaseSchema.PERSON
+INSERT INTO @NHISNSC_database.PERSON
 	(person_id, gender_concept_id, year_of_birth, month_of_birth, day_of_birth,
 	time_of_birth, race_concept_id, ethnicity_concept_id, location_id, provider_id,
 	care_site_id, person_source_value, gender_source_value, gender_source_concept_id, race_source_value,
@@ -831,8 +829,8 @@ select
 	null as month_of_birth,
 	null as day_of_birth,
 	null as time_of_birth,
-	38003585 as race_concept_id, --ì¸ì¢…
-	38003564 as ethnicity_concept_id, --ë¯¼ì¡±ì„±
+	38003585 as race_concept_id, --ÀÎÁ¾
+	38003564 as ethnicity_concept_id, --¹ÎÁ·¼º
 	o.sgg as location_id,
 	null as provider_id,
 	null as care_site_id,
@@ -843,20 +841,20 @@ select
 	null as race_source_concept_id,
 	null as ethnicity_source_value,
 	null as ethnicity_source_concept_id
-from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” person ë°ì´í„°
+from @NHISNSC_rawdata.@NHIS_JK m, --Ãâ»ı³âµµ ÃßÁ¤¿¡ »ç¿ëµÇ´Â person µ¥ÀÌÅÍ
 	(select m.person_id, min(m.age_group) as age_group, min(m.stnd_y) as stnd_y
-	from @NHISDatabaseSchema.@NHIS_JK m,
+	from @NHISNSC_rawdata.@NHIS_JK m,
 		(select distinct person_id
 		from (
 		select person_id, age_group, count(age_group) as age_group_cnt
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		where person_id in (
 			select distinct person_id
 			from (
 				select distinct person_id
 				from (
-					select person_id, age_group, count(age_group) as age_group_cnt, min(year) as min_year, max(year) as max_year
-					from @NHISDatabaseSchema.@NHIS_JK
+					select person_id, age_group, count(age_group) as age_group_cnt, min(STND_Y) as min_year, max(STND_Y) as max_year	-- min(), max()ÀÇ year¸¦ stnd_y·Î ´ëÃ¼
+					from @NHISNSC_rawdata.@NHIS_JK
 					group by person_id, age_group
 				) a
 				group by person_id
@@ -864,7 +862,7 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 			) b
 			where b.person_id not in (
 				select person_id 
-				from @NHISDatabaseSchema.@NHIS_JK
+				from @NHISNSC_rawdata.@NHIS_JK
 				where person_id =b.person_id
 				group by person_id, age_group
 				having count(age_group) = 5
@@ -875,14 +873,79 @@ from @NHISDatabaseSchema.@NHIS_JK m, --ì¶œìƒë…„ë„ ì¶”ì •ì— ì‚¬ìš©ë˜ëŠ” perso
 		group by x.person_id
 		having max(x.age_group_cnt) > 5) n
 	where m.person_id=n.person_id
-	group by m.person_id) n, --ì¶”ì •í¬ì¸íŠ¸ ì¡°ê±´ì— ë§ëŠ” person ëª©ë¡ ì¶”ì¶œ
+	group by m.person_id) n, --ÃßÁ¤Æ÷ÀÎÆ® Á¶°Ç¿¡ ¸Â´Â person ¸ñ·Ï ÃßÃâ
 	(select w.person_id, w.stnd_y, q.sex, q.sgg
-	from @NHISDatabaseSchema.@NHIS_JK q, (
+	from @NHISNSC_rawdata.@NHIS_JK q, (
 		select person_id, max(stnd_y) as stnd_y
-		from @NHISDatabaseSchema.@NHIS_JK
+		from @NHISNSC_rawdata.@NHIS_JK
 		group by person_id) w
 	where q.person_id=w.person_id
-	and q.stnd_y=w.stnd_y) o --ìµœì‹  ì§€ì—­ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•´ ì¡°ì¸
+	and q.stnd_y=w.stnd_y) o --ÃÖ½Å Áö¿ª µ¥ÀÌÅÍ¸¦ °¡Á®¿À±â À§ÇØ Á¶ÀÎ
 where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
+;
+
+-----Person issue update
+-- person¿¡´Â 2002³â Ãâ»ıÀ¸·Î ³ª¿ÀÁö¸¸ JK table¿¡´Â age_groupÀÌ 1·Î ³ª¿À´Â »ç¶÷µé(Àß¸øºĞ·ùµÈ»ç¶÷µé), 241
+-- 3¹ø, 7¹ø¿¡ ¼ÓÇØ ÀÖÀ½.
+-- À§¿Í µ¿ÀÏÇÑ id µéÀ» person table ¿¡¼­ È®ÀÎ
+select * 
+from @NHISNSC_database.PERSON 
+where person_id in (
+					SELECT person_id
+					FROM @NHISNSC_rawdata.dbo.NHID_JK
+					where person_id in (
+								  select person_id from @NHISNSC_database.PERSON
+								  where year_of_birth = 2002
+									)
+							and AGE_GROUP = 1 and STND_Y = 2002
+					);
+
+
+--JK ¿øº» Å×ÀÌºí¿¡´Â 2009³â ½Å»ı¾Æ·Î ³ª¿ÀÁö¸¸ person¿¡´Â ¾È ³ª¿À´Â ÄÉÀÌ½ºµé, person table¿¡´Â 2008³â Ãâ»ıÀ¸·Î ³ª¿È, 2
+select * from @NHISNSC_database.PERSON
+where person_id in (select person_id from @NHISNSC_rawdata.@NHIS_JK
+					where age_group = 0 and STND_Y = 2009 and  PERSON_ID not in (
+									select person_id from @NHISNSC_database.PERSON
+									where year_of_birth = 2009)
+					);
+
+
+
+-- 241¸í¿¡ ÇØ´çµÇ´Â µ¥ÀÌÅÍ ¼öÁ¤, Ãâ»ı³âµµ¸¦ 2002³â¿¡¼­ 2001³âÀ¸·Î.
+update @NHISNSC_database.PERSON
+set year_of_birth='2001' where person_id in (
+									select person_id
+									from @NHISNSC_database.PERSON 
+									where person_id in (
+											SELECT person_id
+											FROM @NHISNSC_rawdata.dbo.NHID_JK
+											where person_id in (
+														  select person_id from @NHISNSC_database.PERSON
+														  where year_of_birth = 2002
+															)
+											and AGE_GROUP = 1 and STND_Y = 2002
+														)
+									);
+
+-- 2008, 2009³â¿¡ Ãâ»ıÇÑ 12°ÇÀÇ °Ç¼öµéÀº ½ÇÁ¦·Î 2008³â¿¡ ÅÂ¾î³­ °ÍÀ» JK ¿¡¼­ È®ÀÎ. person¿¡´Â 2008·Î ºĞ·ùµÇ¾ú±â¿¡ º°µµÀÇ update ÇÏÁö ¾ÊÀ½
+
+----- 2°ÇÀÇ id¿¡ ÇÑÇÏ¿© sex°¡ µÚ¹Ù²ï ¿¬µµ°¡ ÀÖ´Â °ÍÀ» È®ÀÎ
+--person¿¡¼­ È®ÀÎ
+select * from @NHISNSC_database.PERSON
+where person_id in (
+					select person_id from @NHISNSC_rawdata.@NHIS_JK
+					where sex=1 and STND_Y=2011 and person_id in (
+								select PERSON_ID from @NHISNSC_rawdata.@NHIS_JK
+								where sex=2 and STND_Y=2012
+								)
+					);
+-- 95292839ÀÇ gender °ªÀÌ ¿©¼º(8532)ÀÌ±â¿¡ ³²¼º(8507)·Î º¯°æ
+update @NHISNSC_database.PERSON
+set gender_concept_id='8507' 
+where person_id = 95292839;
+
+update @NHISNSC_database.PERSON
+set gender_source_value=1
+where person_id=95292839;
