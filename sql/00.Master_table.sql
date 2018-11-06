@@ -1,99 +1,114 @@
 /**************************************
  --encoding : UTF-8
- --Author: ì´ì„±ì›
- --Date: 2017.01.11
+ --Author: ÀÌ¼º¿ø, ¹ÚÁö¸í
+ --Date: 2018.08.21
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_raw : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
-
- --Description: í‘œë³¸ì½”í˜¸íŠ¸DB T1 í…Œì´ë¸”ë“¤ ì¤‘ 30T, 40T, 60T, ê²€ì§„ í…Œì´ë¸”ì˜ primary keyë¥¼ ì €ì¥í•˜ê³  ìœ ë‹ˆí¬í•œ ì¼ë ¨ë²ˆí˜¸ë¥¼ ì €ì¥í•œ í…Œì´ë¸” ìƒì„±
-			   ìƒì„±ëœ ì¼ë ¨ë²ˆí˜¸ëŠ” condition, drug, procedure, device í…Œì´ë¸”ì˜ primary keyë¡œ ì‚¬ìš©ë˜ë©°, ê²€ì§„ í…Œì´ë¸”ì— ëŒ€í•´ ìƒì„±í•œ ì¼ë ¨ë²ˆí˜¸ëŠ” visit_occurrenceì— ì…ë ¥ë˜ëŠ” ë°ì´í„°ì˜ primary keyë¡œ ì‚¬ìš©
-               ë³€í™˜ëœ CDM ë°ì´í„°ì—ì„œ í‘œë³¸ì½”í˜¸íŠ¸DB ë°ì´í„°ë¥¼ ì¶”ì í•˜ê¸° ìœ„í•œ ëª©ì ìœ¼ë¡œ ìƒì„±í•¨
+ --Description: Ç¥º»ÄÚÈ£Æ®DB T1 Å×ÀÌºíµé Áß 30T, 40T, 60T, °ËÁø, ÀÚ°İ Å×ÀÌºíÀÇ primary key¸¦ ÀúÀåÇÏ°í À¯´ÏÅ©ÇÑ ÀÏ·Ã¹øÈ£¸¦ ÀúÀåÇÑ Å×ÀÌºí »ı¼º
+			   »ı¼ºµÈ ÀÏ·Ã¹øÈ£´Â condition, drug, procedure, device Å×ÀÌºíÀÇ primary key·Î »ç¿ëµÇ¸ç, °ËÁø Å×ÀÌºí¿¡ ´ëÇØ »ı¼ºÇÑ ÀÏ·Ã¹øÈ£´Â visit_occurrence¿¡ ÀÔ·ÂµÇ´Â µ¥ÀÌÅÍÀÇ primary key·Î »ç¿ë
+			   , ÀÚ°İ Å×ÀÌºí¿¡ ´ëÇØ »ı¼ºÇÑ ÀÏ·Ã¹øÈ£´Â observation¿¡ ÀÔ·ÂµÇ´Â primary key·Î »ç¿ë
+               º¯È¯µÈ CDM µ¥ÀÌÅÍ¿¡¼­ Ç¥º»ÄÚÈ£Æ®DB µ¥ÀÌÅÍ¸¦ ÃßÀûÇÏ±â À§ÇÑ ¸ñÀûÀ¸·Î »ı¼ºÇÔ
  --Generating Table: SEQ_MASTER
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„±
-    : ì¼ë ¨ë²ˆí˜¸(PK), ì†ŒìŠ¤ í…Œì´ë¸”, person_id, 30T, 40T, 60T, ê²€ì§„ í…Œì´ë¸”ì˜ Primary keyë“¤ì„ ì»¬ëŸ¼ìœ¼ë¡œ í•˜ëŠ” í…Œì´ë¸” ìƒì„±
+ 1. Å×ÀÌºí »ı¼º
+    : ÀÏ·Ã¹øÈ£(PK), ¼Ò½º Å×ÀÌºí, person_id, 30T, 40T, 60T, °ËÁø, ÀÚ°İ Å×ÀÌºíÀÇ Primary keyµéÀ» ÄÃ·³À¸·Î ÇÏ´Â Å×ÀÌºí »ı¼º
 ***************************************/  
-CREATE TABLE @ResultDatabaseSchema.SEQ_MASTER (
+CREATE TABLE @NHISNSC_database.SEQ_MASTER (
 	master_seq		BIGINT	identity(1, 1) PRIMARY KEY,
-	source_table	CHAR(3)	NOT NULL, -- 30T, 40T, 60TëŠ” 130, 140, 160. ê²€ì§„ì€ 'GJT'
-	person_id		INT	NOT NULL, -- ëª¨ë‘
+	source_table	CHAR(3)	NOT NULL, -- 30T, 40T, 60T´Â 130, 140, 160. °ËÁøÀº 'GJT', ÀÚ°İÀº 'JKT'
+	person_id		INT	NOT NULL, -- ¸ğµÎ
 	key_seq			BIGINT	NULL, -- 30T, 40T, 60T
 	seq_no			NUMERIC(4)	NULL, -- 30T, 40T, 60T
-	hchk_year		CHAR(4)	NULL, -- ê²€ì§„	
+	hchk_year		CHAR(4)	NULL, -- °ËÁø	
+	stnd_y			CHAR(4) NULL, -- ÀÚ°İ		--hchk_year ¿¡ ³Ö¾îµµ µÉµí
 )
 -- 607738697
 
 /**************************************
- 2. 30Tì— ëŒ€í•œ ë°ì´í„° ì…ë ¥
-    : ì¼ë ¨ë²ˆí˜¸ëŠ” 3000000001, 30ì–µëŒ€ë¶€í„° ì‹œì‘
+ 2. 30T¿¡ ´ëÇÑ µ¥ÀÌÅÍ ÀÔ·Â
+    : ÀÏ·Ã¹øÈ£´Â 3000000001, 30¾ï´ëºÎÅÍ ½ÃÀÛ
 ***************************************/
--- 1) ì¼ë ¨ë²ˆí˜¸ ì´ˆê¸°í™”
-DBCC CHECKIDENT('seq_master', RESEED, 3000000001)
+-- 1) ÀÏ·Ã¹øÈ£ ÃÊ±âÈ­
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 3000000000);
 
--- 2) ë°ì´í„° ì…ë ¥
-INSERT INTO @ResultDatabaseSchema.SEQ_MASTER
+-- 2) µ¥ÀÌÅÍ ÀÔ·Â	576969959  36:35
+INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '130', b.person_id, a.key_seq, a.seq_no
-FROM @NHISDatabaseSchema.@NHIS_30T a, @NHISDatabaseSchema.@NHIS_20T b
+FROM @NHISNSC_rawdata.@NHIS_30T a, @NHISNSC_rawdata.@NHIS_20T b
 WHERE a.key_seq=b.key_seq
-
+;
 
 /**************************************
- 3. 40Tì— ëŒ€í•œ ë°ì´í„° ì…ë ¥
-    : ì¼ë ¨ë²ˆí˜¸ëŠ” 4000000001, 40ì–µëŒ€ë¶€í„° ì‹œì‘
+ 3. 40T¿¡ ´ëÇÑ µ¥ÀÌÅÍ ÀÔ·Â
+    : ÀÏ·Ã¹øÈ£´Â 4000000001, 40¾ï´ëºÎÅÍ ½ÃÀÛ
 ***************************************/
--- 1) ì¼ë ¨ë²ˆí˜¸ ì´ˆê¸°í™”
-DBCC CHECKIDENT('seq_master', RESEED, 4000000000)
+-- 1) ÀÏ·Ã¹øÈ£ ÃÊ±âÈ­
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 4000000000);
 
--- 2) ë°ì´í„° ì…ë ¥
-INSERT INTO @ResultDatabaseSchema.SEQ_MASTER
+-- 2) µ¥ÀÌÅÍ ÀÔ·Â	299379695	23:40
+INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '140', b.person_id, a.key_seq, a.seq_no
-FROM @NHISDatabaseSchema.@NHIS_40T a, @NHISDatabaseSchema.@NHIS_20T b
+FROM @NHISNSC_rawdata.@NHIS_40T a, @NHISNSC_rawdata.@NHIS_40T b
 WHERE a.key_seq=b.key_seq
-
+;
 
 /**************************************
- 4. 60Tì— ëŒ€í•œ ë°ì´í„° ì…ë ¥
-    : ì¼ë ¨ë²ˆí˜¸ëŠ” 6000000001, 60ì–µëŒ€ë¶€í„° ì‹œì‘
+ 4. 60T¿¡ ´ëÇÑ µ¥ÀÌÅÍ ÀÔ·Â
+    : ÀÏ·Ã¹øÈ£´Â 6000000001, 60¾ï´ëºÎÅÍ ½ÃÀÛ
 ***************************************/
--- 1) ì¼ë ¨ë²ˆí˜¸ ì´ˆê¸°í™”
-DBCC CHECKIDENT('seq_master', RESEED, 6000000000)
+-- 1) ÀÏ·Ã¹øÈ£ ÃÊ±âÈ­  
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 6000000000);
 
--- 2) ë°ì´í„° ì…ë ¥
-INSERT INTO @ResultDatabaseSchema.SEQ_MASTER
+-- 2) µ¥ÀÌÅÍ ÀÔ·Â	396777913	36:59
+INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '160', b.person_id, a.key_seq, a.seq_no
-FROM @NHISDatabaseSchema.@NHIS_60T a, @NHISDatabaseSchema.@NHIS_20T b
+FROM @NHISNSC_rawdata.@NHIS_60T a, @NHISNSC_rawdata.@NHIS_20T b
 WHERE a.key_seq=b.key_seq
-
+;
 
 /**************************************
- 5. ê²€ì§„ì— ëŒ€í•œ ë°ì´í„° ì…ë ¥
-    : ì¼ë ¨ë²ˆí˜¸ëŠ” 800000000001, 8000ì–µëŒ€ë¶€í„° ì‹œì‘
-	: visit_occurrence_idê°€ 12ìë¦¬ ìˆ«ìì´ë¯€ë¡œ ìë¦¿ìˆ˜ë¥¼ ë§ì¶° ì¤Œ
+ 5. °ËÁø¿¡ ´ëÇÑ µ¥ÀÌÅÍ ÀÔ·Â
+    : ÀÏ·Ã¹øÈ£´Â 800000000001, 8000¾ï´ëºÎÅÍ ½ÃÀÛ
+	: visit_occurrence_id°¡ 12ÀÚ¸® ¼ıÀÚÀÌ¹Ç·Î ÀÚ¸´¼ö¸¦ ¸ÂÃç ÁÜ
 ***************************************/
--- 1) ì¼ë ¨ë²ˆí˜¸ ì´ˆê¸°í™”
-DBCC CHECKIDENT('seq_master', RESEED, 800000000000)
+-- 1) ÀÏ·Ã¹øÈ£ ÃÊ±âÈ­
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 800000000000);
 
--- 2) ë°ì´í„° ì…ë ¥
-INSERT INTO @ResultDatabaseSchema.SEQ_MASTER
+-- 2) µ¥ÀÌÅÍ ÀÔ·Â	2210067		9
+INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, hchk_year)
 SELECT 'GJT', person_id, hchk_year
-FROM @NHISDatabaseSchema.@NHIS_GJ
+FROM @NHISNSC_rawdata.@NHIS_GJ
 GROUP BY hchk_year, person_id
+;
+/**************************************
+ 6. ÀÚ°İ¿¡ ´ëÇÑ µ¥ÀÌÅÍ ÀÔ·Â
+	: ÀÏ·Ã¹øÈ£´Â 900000000001, 9000¾ï´ëºÎÅÍ ½ÃÀÛ
+**************************************/
+-- 1) ÀÏ·Ã¹øÈ£ ÃÊ±âÈ­
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 900000000000);
 
+-- 2) µ¥ÀÌÅÍ ÀÔ·Â	12132633		1:15
+INSERT INTO @NHISNSC_database.SEQ_MASTER
+	(source_table, person_id, stnd_y)
+SELECT 'JKT', person_id, STND_Y
+FROM @NHISNSC_rawdata.dbo.@NHIS_JK
+GROUP BY STND_Y, person_id;
+;
 
 /**************************************
- 6. ì¼ë ¨ë²ˆí˜¸ ìë™ì¦ê°€ ë¹„í™œì„±í™”ì‹œí‚´
+ 7. ÀÏ·Ã¹øÈ£ ÀÚµ¿Áõ°¡ ºñÈ°¼ºÈ­½ÃÅ´
 ***************************************/
-DBCC CHECKIDENT('seq_master', NORESEED)
-
+DBCC CHECKIDENT('@NHISNSC_database.seq_master', NORESEED);
