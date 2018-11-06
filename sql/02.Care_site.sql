@@ -1,28 +1,30 @@
 /**************************************
  --encoding : UTF-8
- --Author: ì´ì„±ì›
- --Date: 2017.01.18
+ --Author: ÀÌ¼º¿ø
+ --Date: 2018.08.22
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
+ @NHIS_YK: YK table in NHIS NSC
  
- --Description: Care_site í…Œì´ë¸” ìƒì„±
-			   1) í‘œë³¸ì½”í˜¸íŠ¸DBì—ëŠ” ìš”ì–‘ê¸°ê´€ì´ ë…„ë„ë³„ë¡œ ì¤‘ë³µ ì…ë ¥ë˜ì–´ ìˆìŒ. ì§€ì—­ì´ë™, ì„¤ë¦½êµ¬ë¶„ì˜ ë³€í™”ë“±ì´ ì¶”ì  ê°€ëŠ¥í•¨
-			      í•˜ì§€ë§Œ, CDMì—ì„œëŠ” 1ê°œì˜ ê¸°ê´€ìœ¼ë¡œ ë“¤ì–´ê°€ì•¼ í•˜ë¯€ë¡œ, ìµœê·¼ ìš”ì–‘ê¸°ê´€ ë°ì´í„°ë¥¼ ë³€í™˜í•¨
-			   2) place of service: í•œêµ­ì  ìƒí™©ì„ ê³ ë ¤í•˜ì—¬ ìƒˆë¡œìš´ conceptì„ ìƒì„±í•¨ (ETL ì •ì˜ì„œ ì°¸ê³ í•  ê²ƒ)
+ --Description: Care_site Å×ÀÌºí »ı¼º
+			   1) Ç¥º»ÄÚÈ£Æ®DB¿¡´Â ¿ä¾ç±â°üÀÌ ³âµµº°·Î Áßº¹ ÀÔ·ÂµÇ¾î ÀÖÀ½. Áö¿ªÀÌµ¿, ¼³¸³±¸ºĞÀÇ º¯È­µîÀÌ ÃßÀû °¡´ÉÇÔ
+			      ÇÏÁö¸¸, CDM¿¡¼­´Â 1°³ÀÇ ±â°üÀ¸·Î µé¾î°¡¾ß ÇÏ¹Ç·Î, ÃÖ±Ù ¿ä¾ç±â°ü µ¥ÀÌÅÍ¸¦ º¯È¯ÇÔ
+			   2) place of service: ÇÑ±¹Àû »óÈ²À» °í·ÁÇÏ¿© »õ·Î¿î conceptÀ» »ı¼ºÇÔ (ETL Á¤ÀÇ¼­ Âü°íÇÒ °Í)
  --Generating Table: CARE_SITE
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„±
+ 1. Å×ÀÌºí »ı¼º
 ***************************************/  
-Create table @ResultDatabaseSchema.CARE_SITE (
-	care_site_id 	integer primary key,
+Create table @NHISNSC_database.CARE_SITE (
+	care_site_id 	integer, --primary key,
 	care_site_name	varchar(255),
 	place_of_service_concept_id	integer,
 	location_id	integer,
@@ -31,37 +33,38 @@ Create table @ResultDatabaseSchema.CARE_SITE (
 );
 
 /**************************************
- 2. ë°ì´í„° ì…ë ¥
-	: place_of_service_source_value - ìš”ì–‘ê¸°ê´€ì¢…ë³„ì½”ë“œ/ìš”ì–‘ê¸°ê´€ì„¤ë¦½êµ¬ë¶„
-									- ìš”ì–‘ê¸°ê´€ì„¤ë¦½êµ¬ë¶„ì´ 1ìë¦¬ ìˆ«ìì¸ ê²½ìš°, ì•ì— 0ì„ ë¶™ì—¬ì¤Œ
+ 2. µ¥ÀÌÅÍ ÀÔ·Â
+	: place_of_service_source_value - ¿ä¾ç±â°üÁ¾º°ÄÚµå/¿ä¾ç±â°ü¼³¸³±¸ºĞ
+									- ¿ä¾ç±â°ü¼³¸³±¸ºĞÀÌ 1ÀÚ¸® ¼ıÀÚÀÎ °æ¿ì, ¾Õ¿¡ 0À» ºÙ¿©ÁÜ		134552, 00:00:01
 ***************************************/  
-INSERT INTO @ResultDatabaseSchema.CARE_SITE
+INSERT INTO @NHISNSC_database.CARE_SITE
 SELECT a.ykiho_id,
 	null as care_site_name,
-	case when a.ykiho_gubun_cd='10' then 4068130 --ì¢…í•©ë³‘ì›(Tertiary care hospital) 
-		 when a.ykiho_gubun_cd between '20' and '27' then 4318944 --ì¼ë°˜ë³‘ì›  Hospital
-		 when a.ykiho_gubun_cd='28' then 82020103 --ìš”ì–‘ë³‘ì›  
-		 when a.ykiho_gubun_cd='29' then 4268912 --ì •ì‹ ìš”ì–‘ë³‘ì› Psychiatric hospital 
-		 when a.ykiho_gubun_cd between '30' and '39' then 82020105 --ì˜ì›
-		 when a.ykiho_gubun_cd between '40' and '49' then 82020106 --ì¹˜ê³¼ë³‘ì›
-		 when a.ykiho_gubun_cd between '50' and '59' then 82020107 --ì¹˜ê³¼ì˜ì›
-		 when a.ykiho_gubun_cd between '60' and '69' then 82020108 --ì¡°ì‚°ì›
-		 when a.ykiho_gubun_cd='70' then 82020109 --ë³´ê±´ì†Œ
-		 when a.ykiho_gubun_cd between '71' and '72' then 82020110 --ë³´ê±´ì§€ì†Œ
-		 when a.ykiho_gubun_cd between '73' and '74' then 82020111 --ë³´ê±´ì§„ë£Œì†Œ
-		 when a.ykiho_gubun_cd between '75' and '76' then 82020112 --ëª¨ìë³´ê±´ì„¼í„°
-		 when a.ykiho_gubun_cd='77' then 82020113 --ë³´ê±´ì˜ë£Œì›
-		 when a.ykiho_gubun_cd between '80' and '89' then 4131032 --ì•½êµ­ Pharmacy
-		 when a.ykiho_gubun_cd='91' then 82020115 --í•œë°©ì¢…í•©ë³‘ì›
-		 when a.ykiho_gubun_cd='92' then 82020116 --í•œë°©ë³‘ì›
-		 when a.ykiho_gubun_cd between '93' and '97' then 82020117 --í•œì˜ì›
-		 when a.ykiho_gubun_cd between '98' and '99' then 82020118 --í•œì•½ë°©
+	case when a.ykiho_gubun_cd='10' then 4068130 --Á¾ÇÕº´¿ø(Tertiary care hospital) 
+		 when a.ykiho_gubun_cd between '20' and '27' then 4318944 --ÀÏ¹İº´¿ø  Hospital
+		 when a.ykiho_gubun_cd='28' then 82020103 --¿ä¾çº´¿ø  
+		 when a.ykiho_gubun_cd='29' then 4268912 --Á¤½Å¿ä¾çº´¿ø Psychiatric hospital 
+		 when a.ykiho_gubun_cd between '30' and '39' then 82020105 --ÀÇ¿ø
+		 when a.ykiho_gubun_cd between '40' and '49' then 82020106 --Ä¡°úº´¿ø
+		 when a.ykiho_gubun_cd between '50' and '59' then 82020107 --Ä¡°úÀÇ¿ø
+		 when a.ykiho_gubun_cd between '60' and '69' then 82020108 --Á¶»ê¿ø
+		 when a.ykiho_gubun_cd='70' then 82020109 --º¸°Ç¼Ò
+		 when a.ykiho_gubun_cd between '71' and '72' then 82020110 --º¸°ÇÁö¼Ò
+		 when a.ykiho_gubun_cd between '73' and '74' then 82020111 --º¸°ÇÁø·á¼Ò
+		 when a.ykiho_gubun_cd between '75' and '76' then 82020112 --¸ğÀÚº¸°Ç¼¾ÅÍ
+		 when a.ykiho_gubun_cd='77' then 82020113 --º¸°ÇÀÇ·á¿ø
+		 when a.ykiho_gubun_cd between '80' and '89' then 4131032 --¾à±¹ Pharmacy
+		 when a.ykiho_gubun_cd='91' then 82020115 --ÇÑ¹æÁ¾ÇÕº´¿ø
+		 when a.ykiho_gubun_cd='92' then 82020116 --ÇÑ¹æº´¿ø
+		 when a.ykiho_gubun_cd between '93' and '97' then 82020117 --ÇÑÀÇ¿ø
+		 when a.ykiho_gubun_cd between '98' and '99' then 82020118 --ÇÑ¾à¹æ
 	end as place_of_service_concept_id,
 	a.ykiho_sido as location_id,
 	a.ykiho_id as care_site_source_value,
 	(a.ykiho_gubun_cd + '/' + (case when len(a.org_type) = 1 then '0' + org_type else org_type end)) as place_of_service_source_value
-FROM @NHISDatabaseSchema.@NHIS_YK a, (select ykiho_id, max(stnd_y) as max_stnd_y
-	from @NHISDatabaseSchema.@NHIS_YK c
+FROM @NHIS_rawdata.@NHIS_JK a, (select ykiho_id, max(stnd_y) as max_stnd_y
+	from @NHIS_rawdata.@NHIS_YK c
 	group by ykiho_id) b
 where a.ykiho_id=b.ykiho_id
 and a.stnd_y=b.max_stnd_y
+;
