@@ -18,7 +18,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/  
-
+/*
 Create table @NHISNSC_database.LOCATION (
 	location_id 	integer primary key,
 	address_1 		varchar(50),
@@ -29,7 +29,7 @@ Create table @NHISNSC_database.LOCATION (
 	county 			varchar(20), 
 	location_source_value 	varchar(50)
 );
-
+*/
 
 /**************************************
  2. 데이터 입력
