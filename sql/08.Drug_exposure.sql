@@ -1,10 +1,10 @@
 /**************************************
  --encoding : UTF-8
- --Author: Ïù¥ÏÑ±Ïõê
- --Date: 2017.02.08
+ --Author: ¿Ãº∫ø¯
+ --Date: 2018.09.11
  
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
+@NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+@NHISNSC_database: DB for NHIS-NSC in CDM format
 @NHIS_JK: JK table in NHIS NSC
 @NHIS_20T: 20 table in NHIS NSC
 @NHIS_30T: 30 table in NHIS NSC
@@ -14,92 +14,131 @@
 @CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
 @DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: Drug_exposure ÌÖåÏù¥Î∏î ÏÉùÏÑ±
-			   * 30T(ÏßÑÎ£å), 60T(Ï≤òÎ∞©Ï†Ñ) ÌÖåÏù¥Î∏îÏóêÏÑú Í∞ÅÍ∞Å ETLÏùÑ ÏàòÌñâÌï¥Ïïº Ìï®
+ --Description: Drug_exposure ≈◊¿Ã∫Ì ª˝º∫
+			   * 30T(¡¯∑·), 60T(√≥πÊ¿¸) ≈◊¿Ã∫Ìø°º≠ ∞¢∞¢ ETL¿ª ºˆ«‡«ÿæﬂ «‘
  --Generating Table: DRUG_EXPOSURE
 ***************************************/
 
 /**************************************
- 1. ÏÇ¨Ï†Ñ Ï§ÄÎπÑ
+ 1. ªÁ¿¸ ¡ÿ∫Ò
 ***************************************/ 
--- 1) 30TÏùò Ìï≠/Î™© ÏΩîÎìú ÌòÑÌô© Ï≤¥ÌÅ¨Îß§Ìïë
+-- 1) 30T¿« «◊/∏Ò ƒ⁄µÂ «ˆ»≤ √º≈©∏≈«Œ
 select clause_cd, item_cd, count(clause_cd)
-from @NHISDatabaseSchema.@NHIS_30T
+from @NHISNSC_rawdata.@NHIS_30T
 group by clause_cd, item_cd
+--> ∞·∞˙¥¬ "08. ¬¸∞Ì) 30T, 60T¿« ƒ⁄µÂ ∫–ºÆ.xlsx" ¬¸∞Ì
 
---> Í≤∞Í≥ºÎäî "08. Ï∞∏Í≥†) 30T, 60TÏùò ÏΩîÎìú Î∂ÑÏÑù.xlsx" Ï∞∏Í≥†
 
-
--- 2) 30TÏùò Í≥ÑÏÇ∞ÏãùÏóê Îì§Ïñ¥Í∞à Ïà´Ïûê Îç∞Ïù¥ÌÑ∞ Ï†ïÌï©ÏÑ± Ï≤¥ÌÅ¨
--- 1Ïùº Ìà¨Ïó¨Îüâ ÎòêÎäî Ïã§Ïãú ÌöüÏàò
+-- 2) 30T¿« ∞ËªÍΩƒø° µÈæÓ∞• º˝¿⁄ µ•¿Ã≈Õ ¡§«’º∫ √º≈©
+-- 1¿œ ≈ıø©∑Æ ∂«¥¬ Ω«Ω√ »Ωºˆ
 select dd_mqty_exec_freq, count(dd_mqty_exec_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_30T
+from @NHISNSC_rawdata.@NHIS_30T
 where dd_mqty_exec_freq is not null and ISNUMERIC(dd_mqty_exec_freq) = 0
 group by dd_mqty_exec_freq
 
--- Ï¥ùÌà¨Ïó¨ÏùºÏàò ÎòêÎäî Ïã§ÏãúÌöüÏàò
+
+-- √—≈ıø©¿œºˆ ∂«¥¬ Ω«Ω√»Ωºˆ
 select mdcn_exec_freq, count(mdcn_exec_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_30T
+from @NHISNSC_rawdata.@NHIS_30T
 where mdcn_exec_freq is not null and ISNUMERIC(mdcn_exec_freq) = 0
 group by mdcn_exec_freq
 
--- 1Ìöå Ìà¨ÏïΩÎüâ
+
+-- 1»∏ ≈ıæ‡∑Æ
 select dd_mqty_freq, count(dd_mqty_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_30T
+from @NHISNSC_rawdata.@NHIS_30T
+where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
+group by dd_mqty_freq
+--> ∞·∞˙¥¬ "08. ¬¸∞Ì) 30T, 60T¿« ƒ⁄µÂ ∫–ºÆ.xlsx" ¬¸∞Ì
+
+
+-- 3) 60T¿« ∞ËªÍΩƒø° µÈæÓ∞• º˝¿⁄ µ•¿Ã≈Õ ¡§«’º∫ √º≈©
+-- 1»∏ ≈ıæ‡∑Æ
+select dd_mqty_freq, count(dd_mqty_freq) as cnt
+from @NHISNSC_rawdata.@NHIS_60T
 where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
 group by dd_mqty_freq
 
---> Í≤∞Í≥ºÎäî "08. Ï∞∏Í≥†) 30T, 60TÏùò ÏΩîÎìú Î∂ÑÏÑù.xlsx" Ï∞∏Í≥†
-
-
--- 3) 60TÏùò Í≥ÑÏÇ∞ÏãùÏóê Îì§Ïñ¥Í∞à Ïà´Ïûê Îç∞Ïù¥ÌÑ∞ Ï†ïÌï©ÏÑ± Ï≤¥ÌÅ¨
--- 1Ìöå Ìà¨ÏïΩÎüâ
-select dd_mqty_freq, count(dd_mqty_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_60T
-where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
-group by dd_mqty_freq
-
--- 1Ïùº Ìà¨ÏïΩÎüâ
+-- 1¿œ ≈ıæ‡∑Æ
 select dd_exec_freq, count(dd_exec_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_60T
+from @NHISNSC_rawdata.@NHIS_60T
 where dd_exec_freq is not null and ISNUMERIC(dd_exec_freq) = 0
 group by dd_exec_freq
 
--- Ï¥ùÌà¨Ïó¨ÏùºÏàò ÎòêÎäî Ïã§ÏãúÌöüÏàò
+-- √—≈ıø©¿œºˆ ∂«¥¬ Ω«Ω√»Ωºˆ
 select mdcn_exec_freq, count(mdcn_exec_freq) as cnt
-from @NHISDatabaseSchema.@NHIS_60T
+from @NHISNSC_rawdata.@NHIS_60T
 where mdcn_exec_freq is not null and ISNUMERIC(mdcn_exec_freq) = 0
 group by mdcn_exec_freq
+--> ∞·∞˙¥¬ "08. ¬¸∞Ì) 30T, 60T¿« ƒ⁄µÂ ∫–ºÆ.xlsx" ¬¸∞Ì
 
---> Í≤∞Í≥ºÎäî "08. Ï∞∏Í≥†) 30T, 60TÏùò ÏΩîÎìú Î∂ÑÏÑù.xlsx" Ï∞∏Í≥†
 
-
--- 4) Îß§Ìïë ÌÖåÏù¥Î∏îÏùò ÏïΩÏΩîÎìú 1:N Í±¥Ïàò Ï≤¥ÌÅ¨
+-- 4) ∏≈«Œ ≈◊¿Ã∫Ì¿« æ‡ƒ⁄µÂ 1:N ∞«ºˆ √º≈©
 select source_code, count(source_code)
-from @ResultDatabaseSchema.@DRUG_MAPPINGTABLE
+from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
 group by source_code
 having count(source_code)>1
---> 1:N Îß§Ìïë ÏïΩÏΩîÎìú ÏóÜÏùå
+--> 1:N ∏≈«Œ æ‡ƒ⁄µÂ æ¯¿Ω
 
 
--- 5) Î≥ÄÌôò ÏòàÏÉÅ Í±¥Ïàò ÌååÏïÖ
+--∏Ó ∞«¿Ã≥™ ¥√æÓ≥Ø¡ˆ øπ√¯
+--30T
+select count(*) from @NHISNSC_rawdata.@NHIS_30T
+where div_cd in (select source_code
+				from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				group by source_code
+				having count(source_code)>1)
+--60T
+select count(*) from @NHISNSC_rawdata.@NHIS_60T
+where div_cd in (select source_code
+				from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				group by source_code
+				having count(source_code)>1)
+
+--∫Ò∏ «Œ∞«ºˆ ∆ƒæ«
+--30T
+select count(*) from @NHISNSC_rawdata.@NHIS_30T
+where DIV_CD not in (
+select DIV_CD from @NHISNSC_rawdata.@NHIS_30T a, (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+where a.DIV_CD=b.source_code
+)
+
+--60T
+select count(*) from @NHISNSC_rawdata.@NHIS_60T
+where DIV_CD not in (
+select DIV_CD from @NHISNSC_rawdata.@NHIS_60T a, (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+where a.DIV_CD=b.source_code
+)
+
+
+-- 5) ∫Ø»Ø øπªÛ ∞«ºˆ ∆ƒæ«
+--30T¿« ∫Ø»ØøπªÛ ∞«ºˆ
 select count(a.key_seq)
-from @NHISDatabaseSchema.@NHIS_30T a, @ResultDatabaseSchema.@DRUG_MAPPINGTABLE b, @NHISDatabaseSchema.@NHIS_20T c
+from @NHISNSC_rawdata.@NHIS_30T a, 
+	(select source_code
+	from @NHISNSC_database.@source_to_concept_map
+	where domain_id='drug' and invalid_reason is null ) as b, 
+	@NHISNSC_rawdata.NHID_GY20_T1 c
 where a.div_cd=b.source_code
 and a.key_seq=c.key_seq
 
+--60T¿« ∫Ø»ØøπªÛ ∞«ºˆ
 select count(a.key_seq)
-from @NHISDatabaseSchema.@NHIS_60T a, @ResultDatabaseSchema.@DRUG_MAPPINGTABLE b, @NHISDatabaseSchema.@NHIS_20T c
+from @NHISNSC_rawdata.@NHIS_60T a, 
+	(select source_code
+	from @NHISNSC_database.@source_to_concept_map 
+	where domain_id='drug' and invalid_reason is null) b, 
+	@NHISNSC_rawdata.NHID_GY20_T1 c
 where a.div_cd=b.source_code
 and a.key_seq=c.key_seq
 
 
 /**************************************
- 1.1. drug_exposure_end_date Í≥ÑÏÇ∞ Î∞©Î≤ïÏùÑ Ï†ïÌïòÍ∏∞ ÏúÑÌï¥ Ïã§ÌñâÌïú ÏøºÎ¶¨Îì§ (2017.02.17 by Ïú†ÏäπÏ∞¨)
+ 1.1. drug_exposure_end_date ∞ËªÍ πÊπ˝¿ª ¡§«œ±‚ ¿ß«ÿ Ω««‡«— ƒı∏ÆµÈ (2017.02.17 by ¿ØΩ¬¬˘)
 ***************************************/ 
-
+-- observation period π¸¿ß π€¿« ∞«ºˆ
 select a.person_id, a.drug_exposure_id, a.drug_exposure_start_date, a.drug_exposure_end_date, b.observation_period_start_date, b.observation_period_end_date, c.death_date
-from drug_exposure a, observation_period b, death C
+from @NHISNSC_database.drug_exposure a, @NHISNSC_database.observation_period b, @NHISNSC_database.DEATH C
 where a.person_id=b.person_id
 and a.person_id = c.person_id
 and (a.drug_exposure_start_date < b.observation_period_start_date
@@ -107,41 +146,42 @@ or a.drug_exposure_end_date > b.observation_period_end_date)
 
 select b.concept_name, x.*
 from 
-(select A.*, B.concept_id
-from @NHISDatabaseSchema.@NHIS_30T AS A
-join @ResultDatabaseSchema.@DRUG_MAPPINGTABLE B
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@NHIS_30T AS A
+join( select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_EXEC_FREQ as float)<1
    and cast(DD_MQTY_EXEC_FREQ as float)>=0) x
-   join @ResultDatabaseSchema.concept b
-   on x.concept_id= b.concept_id
+   join @NHISNSC_database.concept b
+   on x.target_concept_id= b.concept_id
 
 select b.concept_name, x.*
 from 
-(select A.*, B.concept_id
-from @NHISDatabaseSchema.@NHIS_30T AS A
-join @ResultDatabaseSchema.@DRUG_MAPPINGTABLE B
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@NHIS_30T AS A
+join (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_EXEC_FREQ as float)>1) x
-   join @ResultDatabaseSchema.concept b
-   on x.concept_id= b.concept_id
+   join @NHISNSC_database.CONCEPT b
+   on x.target_concept_id= b.concept_id
 
 
 select b.concept_name, x.*
 from 
-(select A.*, B.concept_id
-from @NHISDatabaseSchema.@NHIS_60T AS A
-join @ResultDatabaseSchema.@DRUG_MAPPINGTABLE B
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@NHIS_60T AS A
+join (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_FREQ as float)>1) x
-   join @NHISDatabaseSchema.concept b
-   on x.concept_id= b.concept_id
+   join @NHISNSC_database.concept b
+   on x.target_concept_id= b.concept_id
 
+ 
 
 /**************************************
- 2. ÌÖåÏù¥Î∏î ÏÉùÏÑ±
+ 2. ≈◊¿Ã∫Ì ª˝º∫
 ***************************************/  
-CREATE TABLE @ResultDatabaseSchema.DRUG_EXPOSURE ( 
+CREATE TABLE @NHISNSC_database.DRUG_EXPOSURE ( 
      drug_exposure_id				BIGINT	 	NOT NULL , 
      person_id						INTEGER			NOT NULL , 
      drug_concept_id				INTEGER			NULL , 
@@ -164,22 +204,22 @@ CREATE TABLE @ResultDatabaseSchema.DRUG_EXPOSURE (
 	 route_source_value				VARCHAR(50)		NULL ,
 	 dose_unit_source_value			VARCHAR(50)		NULL
     );
-
 	
+
 /**************************************
- 3. 30TÎ•º Ïù¥Ïö©ÌïòÏó¨ Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•
+ 3. 30T∏¶ ¿ÃøÎ«œø© µ•¿Ã≈Õ ¿‘∑¬
 ***************************************/  
-insert into @ResultDatabaseSchema.DRUG_EXPOSURE 
+insert into @NHISNSC_database.DRUG_EXPOSURE 
 (drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date, 
 drug_type_concept_id, stop_reason, refills, quantity, days_supply, 
 sig, route_concept_id, effective_drug_dose, dose_unit_concept_id, lot_number,
 provider_id, visit_occurrence_id, drug_source_value, drug_source_concept_id, route_source_value, 
 dose_unit_source_value)
-SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.concept_id))) as drug_exposure_id,
+SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as drug_exposure_id,
 	a.person_id as person_id,
-	b.concept_id as drug_concept_id,
+	b.target_concept_id as drug_concept_id,
 	CONVERT(date, a.recu_fr_dt, 112) as drug_exposure_start_date,
-	--DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_mqty_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (ÏàòÏ†ï: 2017.02.17 by Ïù¥ÏÑ±Ïõê)
+	--DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_mqty_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (ºˆ¡§: 2017.02.17 by ¿Ãº∫ø¯)
 	DATEADD(day, convert(float, a.mdcn_exec_freq)-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date,
 	38000180 as drug_type_concept_id,
 	NULL as stop_reason,
@@ -212,28 +252,28 @@ FROM
 			case when x.clause_cd is not null and len(x.clause_cd) = 1 and isnumeric(x.clause_cd)=1 and convert(int, x.clause_cd) between 1 and 9 then '0' + x.clause_cd else x.clause_cd end as clause_cd,
 			case when x.item_cd is not null and len(x.item_cd) = 1 and isnumeric(x.item_cd)=1 and convert(int, x.item_cd) between 1 and 9 then '0' + x.item_cd else x.item_cd end as item_cd,
 			y.master_seq, y.person_id			
-	FROM @NHISDatabaseSchema.@NHIS_30T x, 
-	     (select master_seq, person_id, key_seq, seq_no from seq_master where source_Table='130') y
+	FROM @NHISNSC_rawdata.@NHIS_30T x, 
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a,
-	@ResultDatabaseSchema.@DRUG_MAPPINGTABLE b
+	(select * from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) b
 where a.div_cd=b.source_code
-
+;
 
 /**************************************
- 4. 60TÎ•º Ïù¥Ïö©ÌïòÏó¨ Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•
+ 4. 60T∏¶ ¿ÃøÎ«œø© µ•¿Ã≈Õ ¿‘∑¬
 ***************************************/
-insert into DRUG_EXPOSURE 
+insert into @NHISNSC_database.DRUG_EXPOSURE 
 (drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date, 
 drug_type_concept_id, stop_reason, refills, quantity, days_supply, 
 sig, route_concept_id, effective_drug_dose, dose_unit_concept_id, lot_number,
 provider_id, visit_occurrence_id, drug_source_value, drug_source_concept_id, route_source_value, 
 dose_unit_source_value)
-SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.concept_id))) as drug_exposure_id,
+SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as drug_exposure_id,
 	a.person_id as person_id,
-	b.concept_id as drug_concept_id,
+	b.target_concept_id as drug_concept_id,
 	CONVERT(date, a.recu_fr_dt, 112) as drug_exposure_start_date,
-	-- DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (ÏàòÏ†ï: 2017.02.17 by Ïù¥ÏÑ±Ïõê)
+	-- DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (ºˆ¡§: 2017.02.17 by ¿Ãº∫ø¯)
 	DATEADD(day, convert(float, a.mdcn_exec_freq)-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date,
 	38000177 as drug_type_concept_id,
 	NULL as stop_reason,
@@ -257,44 +297,42 @@ FROM
 			case when x.dd_mqty_freq is not null and isnumeric(x.dd_mqty_freq)=1 and cast(x.dd_mqty_freq as float) > '0' then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and isnumeric(x.dd_exec_freq)=1 and cast(x.dd_exec_freq as float) > '0' then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			y.master_seq, y.person_id			
-	FROM @NHISDatabaseSchema.@NHIS_60T x, 
-	     (select master_seq, person_id, key_seq, seq_no from seq_master where source_Table='160') y
+	FROM @NHISNSC_rawdata.@NHIS_60T x, 
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a,
-	@ResultDatabaseSchema.@DRUG_MAPPINGTABLE b
+	(select * from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) b
 where a.div_cd=b.source_code
-
+;
 
 
 /**************************************
- 5. drug_start_dateÍ∞Ä ÏÇ¨ÎßùÏùºÏûê Ïù¥Ï†ÑÏù∏ Îç∞Ïù¥ÌÑ∞ ÏÇ≠Ï†ú
-    Ï¥ù 1,042 Í±¥
+ 5. drug_start_date∞° ªÁ∏¡¿œ¿⁄ ¿Ã¿¸¿Œ µ•¿Ã≈Õ ªË¡¶
 ***************************************/
-delete from a
-from drug_exposure a, death b
+delete from a 
+from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.death b
 where a.person_id=b.person_id
 and b.death_date < a.drug_exposure_start_date
 
 
 
 /**************************************
- 6. drug_end_dateÍ∞Ä ÏÇ¨Ïû•ÏùºÏûê Ïù¥Ï†ÑÏù∏ Îç∞Ïù¥ÌÑ∞Ïùò drug_end_dateÎ•º ÏÇ¨ÎßùÏùºÏûêÎ°ú Î≥ÄÍ≤Ω
-    Ï¥ù 39,186 Í±¥
+ 6. drug_end_date∞° ªÁ¿Â¿œ¿⁄ ¿Ã¿¸¿Œ µ•¿Ã≈Õ¿« drug_end_date∏¶ ªÁ∏¡¿œ¿⁄∑Œ ∫Ø∞Ê
 ***************************************/
 update a
 set drug_exposure_end_date=b.death_date
-from drug_exposure a, death b
+from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEATH b
 where a.person_id=b.person_id
 and (b.death_date < a.drug_exposure_start_date
 or b.death_date < a.drug_exposure_end_date)
 
 
 -------------------------------------------
-Ï∞∏Í≥†) http://tennesseewaltz.tistory.com/236
+¬¸∞Ì) http://tennesseewaltz.tistory.com/236
 UPDATE A
       SET A.SEQ     = B.CMT_NO
         , A.CarType = B.CAR_TYPE
      FROM TABLE_AAA A
           JOIN TABLE_BBB B ON A.OPCode = B.OP_CODE
-    WHERE A.LineCode = 'Ï°∞Í±¥'
+    WHERE A.LineCode = '¡∂∞«'
 -------------------------------------------

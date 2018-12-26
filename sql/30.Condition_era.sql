@@ -2,11 +2,11 @@
  --encoding : UTF-8
  --Author: OHDSI
   
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
+@NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+@NHISNSC_database : DB for NHIS-NSC in CDM format
  
- --Description: OHDSIì—ì„œ ìƒì„±í•œ condition_era ìƒì„± ì¿¼ë¦¬
-               ì´ 3ê°œì˜ temp tableì´ ë§Œë“¤ì–´ì§
+ --Description: OHDSI¿¡¼­ »ı¼ºÇÑ condition_era »ı¼º Äõ¸®
+               ÃÑ 3°³ÀÇ temp tableÀÌ ¸¸µé¾îÁü
 			   1) #cteConditionTarget
 			   2) #cteEndDates
 			   3) #cteConditionEnds
@@ -15,20 +15,20 @@
 
 /**************************************
  @Author: OHDSI
- @Date: 2017.02.21 ì‹¤í–‰
+ @Date: 2017.02.21 ½ÇÇà
  
- @Database: NHIS_NSC (16í˜¸ ì„œë²„)
- @Description: OHDSIì—ì„œ ìƒì„±í•œ condition_era ìƒì„± ì¿¼ë¦¬
-               ì´ 3ê°œì˜ temp tableì´ ë§Œë“¤ì–´ì§
+ @Database: @NHISNSC_database 
+ @Description: OHDSI¿¡¼­ »ı¼ºÇÑ condition_era »ı¼º Äõ¸®
+               ÃÑ 3°³ÀÇ temp tableÀÌ ¸¸µé¾îÁü
 			   1) #cteConditionTarget
 			   2) #cteEndDates
 			   3) #cteConditionEnds
 ***************************************/
 
 /**************************************
- 1. condition_era í…Œì´ë¸” ìƒì„±
+ 1. condition_era Å×ÀÌºí »ı¼º
 ***************************************/ 
-CREATE TABLE @NHISDatabaseSchema.CONDITION_ERA  (
+CREATE TABLE nhis_nsc_new.dbo.CONDITION_ERA_cpt4  (
      condition_era_id					INTEGER	 identity(1,1)    NOT NULL , 
      person_id							INTEGER     NOT NULL ,
      condition_concept_id				INTEGER   NOT NULL ,
@@ -37,11 +37,11 @@ CREATE TABLE @NHISDatabaseSchema.CONDITION_ERA  (
      condition_occurrence_count			INTEGER			NULL 
 ); 
 
-	 
+
 /**************************************
- 2. 1ë‹¨ê³„: í•„ìš” ë°ì´í„° ì¡°íšŒ
+ 2. 1´Ü°è: ÇÊ¿ä µ¥ÀÌÅÍ Á¶È¸
 ***************************************/ 
---------------------------------------------#cteConditionTarget 
+--------------------------------------------#cteConditionTarget
 SELECT
 	condition_occurrence_id, 
 	person_id, 
@@ -49,7 +49,7 @@ SELECT
 	condition_start_date, 
 	COALESCE(NULLIF(condition_end_date,NULL), dateadd (day, 31, condition_start_date)) AS condition_end_date
 into #cteConditionTarget 
-FROM condition_occurrence;
+FROM nhis_nsc_new.dbo.CONDITION_OCCURRENCE_cpt4;
 	
 	
 --------------------------------------------#cteEndDates
@@ -108,10 +108,10 @@ GROUP BY
 
 
 /**************************************
- 3. 2ë‹¨ê³„: condition_eraì— ë°ì´í„° ì…ë ¥
+ 3. 2´Ü°è: condition_era¿¡ µ¥ÀÌÅÍ ÀÔ·Â
 ***************************************/ 
-
-INSERT INTO @NHISDatabaseSchema.condition_era (person_id, condition_concept_id, condition_era_start_date, condition_era_end_date, condition_occurrence_count)
+INSERT INTO nhis_nsc_new.dbo.CONDITION_ERA_cpt4
+ (person_id, condition_concept_id, condition_era_start_date, condition_era_end_date, condition_occurrence_count)
 SELECT
 	person_id
 	, condition_concept_id

@@ -2,17 +2,17 @@
  --encoding : UTF-8
  --Author: OHDSI
   
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
+@NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+@NHISNSC_database : DB for NHIS-NSC in CDM format
  
- --Description: OHDSIì—ì„œ ìƒì„±í•œ dose_era ìƒì„± ì¿¼ë¦¬
+ --Description: OHDSI¿¡¼­ »ı¼ºÇÑ dose_era »ı¼º Äõ¸®
  --Generating Table: DOSE_ERA
 ***************************************/
 
 /**************************************
- 1. dose_era í…Œì´ë¸” ìƒì„±
+ 1. dose_era Å×ÀÌºí »ı¼º
 ***************************************/ 
- CREATE TABLE @ResultDatabaseSchema.DOSE_ERA (
+ CREATE TABLE @NHISNSC_database.DOSE_ERA (
      dose_era_id					INTEGER	 identity(1,1)    NOT NULL , 
      person_id						INTEGER     NOT NULL ,
      drug_concept_id				INTEGER   NOT NULL ,
@@ -24,10 +24,10 @@
 
 
 /**************************************
- 2. 1ë‹¨ê³„: í•„ìš” ë°ì´í„° ì¡°íšŒ
+ 2. 1´Ü°è: ÇÊ¿ä µ¥ÀÌÅÍ Á¶È¸
 ***************************************/ 
 
---------------------------------------------#cteDrugTarget
+--------------------------------------------#cteDrugTarget, 457250250, 00:03:20
 SELECT
 	d.drug_exposure_id
 	, d.person_id
@@ -38,14 +38,14 @@ SELECT
 	, d.days_supply AS days_supply
 	, COALESCE(d.drug_exposure_end_date, DATEADD(DAY, d.days_supply, d.drug_exposure_start_date), DATEADD(DAY, 1, drug_exposure_start_date)) AS drug_exposure_end_date
 INTO #cteDrugTarget 
-FROM drug_exposure d
-	 JOIN concept_ancestor ca ON ca.descendant_concept_id = d.drug_concept_id
-	 JOIN concept c ON ca.ancestor_concept_id = c.concept_id
+FROM @NHISNSC_database.DRUG_EXPOSURE d
+	 JOIN @NHISNSC_database.CONCEPT_ANCESTOR ca ON ca.descendant_concept_id = d.drug_concept_id
+	 JOIN @NHISNSC_database.CONCEPT c ON ca.ancestor_concept_id = c.concept_id
 	 WHERE c.vocabulary_id = 'RxNorm'
 	 AND c.concept_class_ID = 'Ingredient';
 	
 	
---------------------------------------------#cteEndDates
+--------------------------------------------#cteEndDates, 217802424, 00:13:32
 SELECT
 	person_id
 	, ingredient_concept_id
@@ -89,8 +89,7 @@ INTO #cteEndDates FROM
 ) e
 WHERE (2 * e.start_ordinal) - e.overall_ord = 0;
 
-
---------------------------------------------#cteDoseEraEnds
+--------------------------------------------#cteDoseEraEnds, 457250250, 00:10:55
 SELECT
 	dt.person_id
 	, dt.ingredient_concept_id as drug_concept_id
@@ -100,7 +99,8 @@ SELECT
 	, MIN(e.end_date) AS dose_era_end_date
 into #cteDoseEraEnds FROM #cteDrugTarget dt
 JOIN #cteEndDates e
-ON dt.person_id = e.person_id AND dt.ingredient_concept_id = e.ingredient_concept_id AND dt.unit_concept_id = e.unit_concept_id AND dt.dose_value = e.dose_value AND e.end_date >= dt.drug_exposure_start_date
+ON dt.person_id = e.person_id AND dt.ingredient_concept_id = e.ingredient_concept_id AND e.end_date >= dt.drug_exposure_start_date
+--AND dt.unit_concept_id = e.unit_concept_id AND dt.dose_value = e.dose_value		--unit_concpet_id ¿Í dose_value ´Â ¾çÂÊ Å×ÀÌºí ¸ğµÎ¿¡¼­ ÀüºÎ null ÀÌ±â¿¡ Á¦¿Ü½ÃÅ´
 GROUP BY
 	dt.drug_exposure_id
 	, dt.person_id
@@ -108,14 +108,15 @@ GROUP BY
 	, dt.unit_concept_id
 	, dt.dose_value
 	, dt.drug_exposure_start_date;
-
 	
 	
 /**************************************
- 3. 2ë‹¨ê³„: dose_eraì— ë°ì´í„° ì…ë ¥
+ 3. 2´Ü°è: dose_era¿¡ µ¥ÀÌÅÍ ÀÔ·Â
 ***************************************/ 
 
-INSERT INTO @ResultDatabaseSchema.dose_era (person_id, drug_concept_id, unit_concept_id, dose_value, dose_era_start_date, dose_era_end_date)
+-- ÀÓ½ÃÅ×ÀÌºíÀ» ¸¸µé ´ç½Ã ÀÌ¹Ì drug exposure ¿¡´Â unit concept id ¿Í dose value °¡ ÀüºÎ null·Î ÀÔ·ÂµÇÀÖ´Âµ¥ ÇöÀç Å×ÀÌºí¿¡¼­´Â not null·Î ¼³Á¤µÇ¾îÀÖ´Ù.
+
+INSERT INTO @NHISNSC_database.dose_era (person_id, drug_concept_id, unit_concept_id, dose_value, dose_era_start_date, dose_era_end_date)
 SELECT
 	person_id
 	, drug_concept_id

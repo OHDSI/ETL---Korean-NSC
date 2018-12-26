@@ -1,25 +1,26 @@
 /**************************************
  --encoding : UTF-8
- --Author: Ïú†ÏäπÏ∞¨
- --Date: 2017.09.26
+ --Author: ¿ØΩ¬¬˘
+ --Date: 2018.09.15
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: MEASUREMENT ÌÖåÏù¥Î∏î ÏÉùÏÑ±				
- --ÏÉùÏÑ± Table: MEASUREMENT
+ --Description: MEASUREMENT ≈◊¿Ã∫Ì ª˝º∫				
+ --ª˝º∫ Table: MEASUREMENT
 ***************************************/
 
 /**************************************
- 0. ÌÖåÏù¥Î∏î ÏÉùÏÑ±  (33440451)
+ 0. ≈◊¿Ã∫Ì ª˝º∫  (33440451)
 ***************************************/ 
 
-IF OBJECT_ID('@ResultDatabaseSchema.MEASUREMENT', 'U') IS NULL
-CREATE TABLE @ResultDatabaseSchema.MEASUREMENT
+IF OBJECT_ID('@NHISNSC_database.MEASUREMENT', 'U') IS NULL
+CREATE TABLE @NHISNSC_database.MEASUREMENT
     (
      measurement_id						BIGINT						NOT NULL , 
      person_id							INTEGER						NOT NULL ,
@@ -97,11 +98,11 @@ CREATE TABLE #measurement_mapping
 																																																																					
 
 /**************************************																																							   
- 1. ÌñâÏùÑ Ïó¥Î°ú Ï†ÑÌôò
+ 1. «‡¿ª ø≠∑Œ ¿¸»Ø
 ***************************************/ 
-select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @ResultDatabaseSchema.GJ_VERTICAL
-from @NHISDatabaseSchema.@NHIS_GJ
-unpivot (meas_value for meas_type in ( -- 47 Í≤ÄÏßÑ Ìï≠Î™©
+select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @NHISNSC_database.GJ_VERTICAL
+from @NHISNSC_rawdata.@NHIS_GJ
+unpivot (meas_value for meas_type in ( -- 47 ∞À¡¯ «◊∏Ò
 	height, weight, waist, bp_high, bp_lwst,
 	blds, tot_chole, triglyceride, hdl_chole, ldl_chole,
 	hmg, gly_cd, olig_occu_cd, olig_ph, olig_prote_cd,
@@ -113,15 +114,13 @@ unpivot (meas_value for meas_type in ( -- 47 Í≤ÄÏßÑ Ìï≠Î™©
 	past_dsqty_rsps_cd, dsqty_rsps_cd, drnk_habit_rsps_Cd, tm1_drkqty_rsps_cd, exerci_freq_rsps_cd, 
 	mov20_wek_freq_id, mov30_wek_freq_id, wlk30_wek_freq_id
 )) as unpivortn
-
-
-
+;
 
 
 /**************************************
- 2. ÏàòÏπòÌòï Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•  
+ 2. ºˆƒ°«¸ µ•¿Ã≈Õ ¿‘∑¬ 
 ***************************************/ 
-INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
+INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
@@ -161,11 +160,11 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 			a.meas_value as value_source_value
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value 			
-			from @ResultDatabaseSchema.GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #measurement_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') >= isnull(cast(b.answer as char),'0')
-		JOIN @ResultDatabaseSchema.SEQ_MASTER c
+		JOIN @NHISNSC_database.SEQ_MASTER c
 		on a.person_id = cast(c.person_id as char)
 			and a.hchk_year = c.hchk_year
 	where (a.meas_value != '' and substring(a.meas_type, 1, 30) in ('HEIGHT', 'WEIGHT',	'WAIST', 'BP_HIGH', 'BP_LWST', 'BLDS', 'TOT_CHOLE', 'TRIGLYCERIDE',	'HDL_CHOLE',		
@@ -176,9 +175,9 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 	
 
 /**************************************
- 2. ÏΩîÎìúÌòï Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•  
+ 2. ƒ⁄µÂ«¸ µ•¿Ã≈Õ ¿‘∑¬ 
 ***************************************/ 
-INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
+INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
@@ -205,11 +204,11 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 			a.meas_value as value_source_value
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value 			
-			from @ResultDatabaseSchema.GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #measurement_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') = isnull(cast(b.answer as char),'0')
-		JOIN @ResultDatabaseSchema.SEQ_MASTER c
+		JOIN @NHISNSC_database.SEQ_MASTER c
 		on a.person_id = cast(c.person_id as char)
 			and a.hchk_year = c.hchk_year
 	where (a.meas_value != '' and substring(a.meas_type, 1, 30) in ('GLY_CD', 'OLIG_OCCU_CD', 'OLIG_PROTE_CD')
@@ -217,8 +216,9 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 ;
 
 /**************************************
- 3.source_valueÏùò Í∞íÏùÑ value_as_numberÏóêÎèÑ ÏûÖÎ†•
+ 3.source_value¿« ∞™¿ª value_as_numberø°µµ ¿‘∑¬
 ***************************************/ 
-UPDATE @ResultDatabaseSchema.MEASUREMENT
+UPDATE @NHISNSC_database.MEASUREMENT
 SET value_as_number = measurement_source_value
 where measurement_source_value is not null
+;

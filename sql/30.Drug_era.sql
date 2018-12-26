@@ -2,17 +2,17 @@
  --encoding : UTF-8
  --Author: OHDSI
   
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
+@NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+@NHISNSC_database : DB for NHIS-NSC in CDM format
  
- --Description: OHDSIì—ì„œ ìƒì„±í•œ drug_era ìƒì„± ì¿¼ë¦¬
+ --Description: OHDSI¿¡¼­ »ı¼ºÇÑ drug_era »ı¼º Äõ¸®
  --Generating Table: DRUG_ERA
 ***************************************/
 
 /**************************************
- 1. drug_era í…Œì´ë¸” ìƒì„±
+ 1. drug_era Å×ÀÌºí »ı¼º
 ***************************************/ 
-  CREATE TABLE @ResultDatabaseSchema.DRUG_ERA (
+  CREATE TABLE @NHISNSC_database.DRUG_ERA (
      drug_era_id					INTEGER	 identity(1,1)    NOT NULL , 
      person_id							INTEGER     NOT NULL ,
      drug_concept_id				INTEGER   NOT NULL ,
@@ -24,10 +24,10 @@
 
 
 /**************************************
- 2. 1ë‹¨ê³„: í•„ìš” ë°ì´í„° ì¡°íšŒ
+ 2. 1´Ü°è: ÇÊ¿ä µ¥ÀÌÅÍ Á¶È¸
 ***************************************/ 
 
---------------------------------------------#cteDrugPreTarget 
+--------------------------------------------#cteDrugPreTarget
 SELECT 
 	d.drug_exposure_id
 	, d.person_id
@@ -35,10 +35,10 @@ SELECT
 	, d.drug_exposure_start_date AS drug_exposure_start_date
 	, d.days_supply AS days_supply
 	, COALESCE(d.drug_exposure_end_date, DATEADD(DAY, d.days_supply, d.drug_exposure_start_date), DATEADD(DAY, 1, drug_exposure_start_date)) AS drug_exposure_end_date
-into #cteDrugPreTarget FROM drug_exposure d
-JOIN concept_ancestor ca 
+into #cteDrugPreTarget FROM @NHISNSC_database.DRUG_EXPOSURE d
+JOIN @NHISNSC_database.CONCEPT_ANCESTOR ca 
 ON ca.descendant_concept_id = d.drug_concept_id
-JOIN concept c 
+JOIN @NHISNSC_database.CONCEPT c 
 ON ca.ancestor_concept_id = c.concept_id
 WHERE c.vocabulary_id = 'RxNorm'
 AND c.concept_class_ID = 'Ingredient';
@@ -116,10 +116,10 @@ GROUP BY
 
 		  
 /**************************************
- 3. 2ë‹¨ê³„: drug_eraì— ë°ì´í„° ì…ë ¥
+ 3. 2´Ü°è: drug_era¿¡ µ¥ÀÌÅÍ ÀÔ·Â
 ***************************************/ 
 
-INSERT INTO @ResultDatabaseSchema.drug_era (person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
+INSERT INTO @NHISNSC_database.drug_era (person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
 SELECT
 	person_id
 	, drug_concept_id

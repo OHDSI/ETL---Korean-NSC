@@ -1,29 +1,29 @@
 /**************************************
  --encoding : UTF-8
- --Author: Ïù¥ÏÑ±Ïõê
- --Date: 2017.02.08
+ --Author: ¿Ãº∫ø¯, π⁄¡ˆ∏Ì
+ --Date: 2018.09.20
  
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@ResultDatabaseSchema : DB for NHIS-NSC in CDM format
-@NHIS_JK: JK table in NHIS NSC
-@NHIS_20T: 20 table in NHIS NSC
-@NHIS_30T: 30 table in NHIS NSC
-@NHIS_40T: 40 table in NHIS NSC
-@NHIS_60T: 60 table in NHIS NSC
-@NHIS_GJ: GJ table in NHIS NSC
-@CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
-@DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
-@PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
-@DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @NHIS_JK: JK table in NHIS NSC
+ @NHIS_20T: 20 table in NHIS NSC
+ @NHIS_30T: 30 table in NHIS NSC
+ @NHIS_40T: 40 table in NHIS NSC
+ @NHIS_60T: 60 table in NHIS NSC
+ @NHIS_GJ: GJ table in NHIS NSC
+ @CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
+ @DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
+ @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
+ @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: Cost ÌÖåÏù¥Î∏î ÏÉùÏÑ±
+ --Description: Cost ≈◊¿Ã∫Ì ª˝º∫
  --Generating Table: COST
 ***************************************/
 
 /**************************************
- 1. ÌÖåÏù¥Î∏î ÏÉùÏÑ±
+ 1. ≈◊¿Ã∫Ì ª˝º∫
 ***************************************/ 
-CREATE TABLE @ResultDatabaseSchema.COST (
+CREATE TABLE @NHISNSC_database.COST (
 	cost_id	bigint	primary key,
 	cost_event_id	bigint	not null,
 	cost_domain_id	varchar(20)	not null,
@@ -49,7 +49,7 @@ CREATE TABLE @ResultDatabaseSchema.COST (
 );
 
 /**************************************
- 2. Îç∞Ïù¥ÌÑ∞ ÏûÖÎ†•
+ 2. µ•¿Ã≈Õ ¿‘∑¬
     1) Visit
 	2) Drug
 	3) Procedure
@@ -59,7 +59,7 @@ CREATE TABLE @ResultDatabaseSchema.COST (
 ---------------------------------------------------
 -- 1) Visit
 ---------------------------------------------------
-INSERT INTO @ResultDatabaseSchema.COST
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -88,18 +88,42 @@ SELECT
 	null as drg_concept_id,
 	null as revenue_code_source_value,
 	b.dmd_drg_no as drg_source_value
-from visit_occurrence a, @NHISDatabaseSchema.@NHIS_20T b
+from @NHISNSC_database.VISIT_OCCURRENCE a, @NHISNSC_rawdata.@NHIS_20T b
 where a.visit_occurrence_id=b.key_seq
 and a.person_id=b.person_id;
-
 
 
 ---------------------------------------------------
 -- 2) Drug
 ---------------------------------------------------
+-- Drug øÕ Device ø°º≠ ¡ﬂ∫πµ«¥¬ ≈∞∏¶ »Æ¿Œ
+select * from @NHISNSC_database.@source_to_concept_map
+where source_code in (
+					select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
+					where a.drug_exposure_id=b.device_exposure_id and a.person_id=b.person_id
+					)
+order by source_code
 
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 30TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- «ÿ¥Áµ«¥¬ ≈∞µÈ¿ª Drug ø°º≠ ¡¶∞≈
+delete from @NHISNSC_database.DRUG_EXPOSURE
+where drug_source_value in (select source_code from @NHISNSC_database.@source_to_concept_map
+							where domain_id='drug' and source_code in (
+												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
+												where a.drug_exposure_id=b.device_exposure_id 
+													and a.person_id=b.person_id 
+											)
+								)
+
+--«ÿ¥Áµ«¥¬ ≈∞µÈ¿ª ∏≈«Œ≈◊¿Ã∫Ìø°º≠ ¡¶∞≈								
+delete from @NHISNSC_database.@source_to_concept_map
+							where domain_id='drug' and source_code in (
+												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
+												where a.drug_exposure_id=b.device_exposure_id 
+													and a.person_id=b.person_id 
+
+--µ•¿Ã≈Õ ¿‘∑¬
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 30T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -129,10 +153,10 @@ SELECT
 	null as revenue_code_source_value,
 	null as drg_source_value
 from (select person_id, drug_exposure_id, drug_exposure_start_date
-	from drug_exposure
+	from @NHISNSC_database.DRUG_EXPOSURE
 	where drug_type_concept_id=38000180) a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from seq_master m, @NHISDatabaseSchema.@NHIS_30T n
+	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
 	and m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
@@ -140,8 +164,8 @@ where left(a.drug_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 60TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 60T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -171,11 +195,11 @@ SELECT
 	null as revenue_code_source_value,
 	null as drg_source_value
 from (select person_id, drug_exposure_id, drug_exposure_start_date
-	from drug_exposure
+	from @NHISNSC_database.DRUG_EXPOSURE
 	where drug_type_concept_id=38000177) a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from (select master_seq, key_seq, seq_no, person_id from seq_master where source_table='160') m, 
-	@NHISDatabaseSchema.@NHIS_60T n
+	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
+	@NHISNSC_rawdata.@NHIS_60T n
 	where m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
 where b.master_seq=left(a.drug_exposure_id, 10)
@@ -186,8 +210,8 @@ and a.person_id=b.person_id;
 -- 3) Procedure
 ---------------------------------------------------
 
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 30TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 30T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -216,9 +240,9 @@ SELECT
 	null as drg_concept_id,
 	null as revenue_code_source_value,
 	null as drg_source_value
-from procedure_occurrence a, 
+from @NHISNSC_database.PROCEDURE_OCCURRENCE a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from seq_master m, @NHISDatabaseSchema.@NHIS_30T n
+	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
 	and m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
@@ -226,8 +250,8 @@ where left(a.procedure_occurrence_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 60TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 60T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -256,10 +280,10 @@ SELECT
 	null as drg_concept_id,
 	null as revenue_code_source_value,
 	null as drg_source_value
-from procedure_occurrence a, 
+from @NHISNSC_database.PROCEDURE_OCCURRENCE a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from (select master_seq, key_seq, seq_no, person_id from seq_master where source_table='160') m, 
-	@NHISDatabaseSchema.@NHIS_60T n
+	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
+	@NHISNSC_rawdata.@NHIS_60T n
 	where m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
 where left(a.procedure_occurrence_id, 10)=b.master_seq
@@ -269,9 +293,8 @@ and a.person_id=b.person_id;
 ---------------------------------------------------
 -- 4) Device
 ---------------------------------------------------
-
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 30TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 30T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -301,10 +324,10 @@ SELECT
 	null as revenue_code_source_value,
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
-	from device_exposure 
-	where device_source_value not in (select sourcecode from procedure_EDI_mapped_20161007)) a, 
+	from @NHISNSC_database.DEVICE_EXPOSURE 
+	where device_source_value not in (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='procedure' and invalid_reason is null)) a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from seq_master m, @NHISDatabaseSchema.@NHIS_30T n
+	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
 	and m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
@@ -312,8 +335,8 @@ where left(a.device_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ÏõêÎ≥∏ ÌÖåÏù¥Î∏îÏù¥ 60TÏù∏ Í≤ΩÏö∞
-INSERT INTO COST
+-- ø¯∫ª ≈◊¿Ã∫Ì¿Ã 60T¿Œ ∞ÊøÏ
+INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
 	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
@@ -343,23 +366,13 @@ SELECT
 	null as revenue_code_source_value,
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
-	from device_exposure 
-	where device_source_value not in (select sourcecode from procedure_EDI_mapped_20161007)) a,  
+	from @NHISNSC_database.DEVICE_EXPOSURE 
+	where device_source_value not in (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='procedure' and invalid_reason is null)) a,  
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
-	from (select master_seq, key_seq, seq_no, person_id from seq_master where source_table='160') m, 
-	@NHISDatabaseSchema.@NHIS_60T n
+	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
+	@NHISNSC_rawdata.@NHIS_60T n
 	where m.key_seq=n.key_seq
 	and m.seq_no=n.seq_no) b
 where left(a.device_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
-
-
-
-
-
-
-
-
-
-
 

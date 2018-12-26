@@ -1,24 +1,25 @@
 /**************************************
  --encoding : UTF-8
- --Author: ì´ì„±ì›
- --Date: 2017.01.31
+ --Author: ÀÌ¼º¿ø
+ --Date: 2018.09.11
  
-@NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
-@NHIS_JK: JK table in NHIS NSC
-@NHIS_20T: 20 table in NHIS NSC
-@NHIS_30T: 30 table in NHIS NSC
-@NHIS_40T: 40 table in NHIS NSC
-@NHIS_60T: 60 table in NHIS NSC
-@NHIS_GJ: GJ table in NHIS NSC
-@CONDITION_MAPPINGTABLE : mapping table between KCD and SNOMED-CT
- --Description: Condition_occurrence í…Œì´ë¸” ìƒì„±
+ @NHISNSC_rawdata: DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @NHIS_JK: JK table in NHIS NSC
+ @NHIS_20T: 20 table in NHIS NSC
+ @NHIS_30T: 30 table in NHIS NSC
+ @NHIS_40T: 40 table in NHIS NSC
+ @NHIS_60T: 60 table in NHIS NSC
+ @NHIS_GJ: GJ table in NHIS NSC
+ @CONDITION_MAPPINGTABLE : mapping table between KCD and SNOMED-CT
+ --Description: Condition_occurrence Å×ÀÌºí »ý¼º
  --Generating Table: CONDITION_OCCURRENCE
 ***************************************/
 
 /**************************************
- 1. í…Œì´ë¸” ìƒì„±
+ 1. Å×ÀÌºí »ý¼º
 ***************************************/ 
-CREATE TABLE @ResultDatabaseSchema.CONDITION_OCCURRENCE ( 
+CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE ( 
      condition_occurrence_id		BIGINT			PRIMARY KEY, 
      person_id						INTEGER			NOT NULL , 
      condition_concept_id			INTEGER			NOT NULL , 
@@ -32,29 +33,29 @@ CREATE TABLE @ResultDatabaseSchema.CONDITION_OCCURRENCE (
 	 condition_source_concept_id	VARCHAR(50)
 );
 
-
 /**************************************
- 2. ë°ì´í„° ìž…ë ¥
-    1) ê´€ì¸¡ì‹œìž‘ì¼: ìžê²©ë…„ë„.01.01ì´ ë””í´íŠ¸. ì¶œìƒë…„ë„ê°€ ê·¸ ì´ì „ì´ë©´ ì¶œìƒë…„ë„.01.01
-	2) ê´€ì¸¡ì¢…ë£Œì¼: ìžê²©ë…„ë„.12.31ì´ ë””í´íŠ¸. ì‚¬ë§ë…„ì›”ì´ ê·¸ ì´í›„ë©´ ì‚¬ë§ë…„.ì›”.ë§ˆì§€ë§‰ë‚ 
+ 2. µ¥ÀÌÅÍ ÀÔ·Â
+    1) °üÃø½ÃÀÛÀÏ: ÀÚ°Ý³âµµ.01.01ÀÌ µðÆúÆ®. Ãâ»ý³âµµ°¡ ±× ÀÌÀüÀÌ¸é Ãâ»ý³âµµ.01.01
+	2) °üÃøÁ¾·áÀÏ: ÀÚ°Ý³âµµ.12.31ÀÌ µðÆúÆ®. »ç¸Á³â¿ùÀÌ ±× ÀÌÈÄ¸é »ç¸Á³â.¿ù.¸¶Áö¸·³¯
 	
-	ì°¸ê³ ) 20T: 119,362,188
+	Âü°í) 20T: 119,362,188
         40T: 299,379,698
 	
 	-- checklist
-	   1) ìƒë³‘ kcdcode full set ìžˆëŠ”ì§€ í™•ì¸ -> ì¡°ìˆ˜ì—° ì„ ìƒë‹˜ : ì™„ë£Œ
-	   2) condition_type_concept_id ê°’ í™•ì¸ -> ìœ ìŠ¹ì°¬ ì„ ìƒë‹˜
+	   1) »óº´ kcdcode full set ÀÖ´ÂÁö È®ÀÎ -> Á¶¼ö¿¬ ¼±»ý´Ô : ¿Ï·á
+	   2) condition_type_concept_id °ª È®ÀÎ -> À¯½ÂÂù ¼±»ý´Ô
 ***************************************/ 
-
-INSERT INTO @ResultDatabaseSchema.CONDITION_OCCURRENCE 
+-- observation_period & visiti_occurrence ¿¡ ÀÖ´Â µ¥ÀÌÅÍ
+--((299,311,028), 00:50:39)
+INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE_cpt4 
 	(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_end_date,
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
-select 
-	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc))) as condition_occurrence_id,
+select
+	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
 	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
 	m.person_id as person_id,
-	n.concept_id as condition_concept_id,
+	n.target_concept_id as condition_concept_id,
 	convert(date, m.recu_fr_dt, 112) as condition_start_date,
 	m.visit_end_date as condition_end_date,
 	m.sick_order as condition_type_concept_id,
@@ -76,16 +77,20 @@ from (
 			else '45756845' --third condition
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
-	from (select master_seq, person_id, key_seq, seq_no from seq_master where source_table='140') a, 
-		@NHISDatabaseSchema.@NHIS_20T b,
-		@NHISDatabaseSchema.@NHIS_40T  c,
-		observation_period d --ì¶”ê°€
+	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
+		@NHISNSC_rawdata.NHID_GY20_T1 b,
+		@NHISNSC_rawdata.NHID_GY40_T1 c,
+		@NHISNSC_database.observation_period d --Ãß°¡
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq
 	and a.seq_no=c.seq_no
-	and b.person_id=d.person_id --ì¶”ê°€
-	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --ì¶”ê°€
-	@ResultDatabaseSchema.@CONDITION_MAPPINGTABLE as n
-where m.sick_sym=n.kcdcode
-
+	and b.person_id=d.person_id --Ãß°¡
+	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --Ãß°¡
+	(select a.source_code, target_concept_id, domain_id as concept_domain_id
+	from @NHISNSC_database.source_to_concept_map a 
+	--left join OMOP_VOCABULARY_2018.dbo.CONCEPT b
+	--on a.target_concept_id=b.concept_id
+	where domain_id='condition' and a.invalid_reason is null 
+	) as n 
+where m.sick_sym=n.source_code
