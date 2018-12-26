@@ -23,6 +23,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/  
+/*
 Create table @NHISNSC_database.CARE_SITE (
 	care_site_id 	integer, --primary key,
 	care_site_name	varchar(255),
@@ -31,6 +32,7 @@ Create table @NHISNSC_database.CARE_SITE (
 	care_site_source_value	varchar(50),
 	place_of_service_source_value	varchar(50)
 );
+*/
 
 /**************************************
  2. 데이터 입력

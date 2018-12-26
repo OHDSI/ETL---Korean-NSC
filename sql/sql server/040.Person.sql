@@ -21,6 +21,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/  
+/*
 CREATE TABLE @NHISNSC_database.PERSON (
      person_id						INTEGER		PRIMARY key , 
      gender_concept_id				INTEGER		NOT NULL , 
@@ -41,7 +42,7 @@ CREATE TABLE @NHISNSC_database.PERSON (
      ethnicity_source_value			VARCHAR(50) NULL,
 	 ethnicity_source_concept_id	INTEGER		NULL
 );
-
+*/
 
 /**************************************
  2. 데이터 입력
@@ -885,67 +886,3 @@ where m.person_id=n.person_id
 and m.stnd_y=n.stnd_y
 and m.person_id=o.person_id
 ;
-
------Person issue update
--- person에는 2002년 출생으로 나오지만 JK table에는 age_group이 1로 나오는 사람들(잘못분류된사람들), 241
--- 3번, 7번에 속해 있음.
--- 위와 동일한 id 들을 person table 에서 확인
-select * 
-from @NHISNSC_database.PERSON 
-where person_id in (
-					SELECT person_id
-					FROM @NHISNSC_rawdata.dbo.NHID_JK
-					where person_id in (
-								  select person_id from @NHISNSC_database.PERSON
-								  where year_of_birth = 2002
-									)
-							and AGE_GROUP = 1 and STND_Y = 2002
-					);
-
-
---JK 원본 테이블에는 2009년 신생아로 나오지만 person에는 안 나오는 케이스들, person table에는 2008년 출생으로 나옴, 2
-select * from @NHISNSC_database.PERSON
-where person_id in (select person_id from @NHISNSC_rawdata.@NHIS_JK
-					where age_group = 0 and STND_Y = 2009 and  PERSON_ID not in (
-									select person_id from @NHISNSC_database.PERSON
-									where year_of_birth = 2009)
-					);
-
-
-
--- 241명에 해당되는 데이터 수정, 출생년도를 2002년에서 2001년으로.
-update @NHISNSC_database.PERSON
-set year_of_birth='2001' where person_id in (
-									select person_id
-									from @NHISNSC_database.PERSON 
-									where person_id in (
-											SELECT person_id
-											FROM @NHISNSC_rawdata.dbo.NHID_JK
-											where person_id in (
-														  select person_id from @NHISNSC_database.PERSON
-														  where year_of_birth = 2002
-															)
-											and AGE_GROUP = 1 and STND_Y = 2002
-														)
-									);
-
--- 2008, 2009년에 출생한 12건의 건수들은 실제로 2008년에 태어난 것을 JK 에서 확인. person에는 2008로 분류되었기에 별도의 update 하지 않음
-
------ 2건의 id에 한하여 sex가 뒤바뀐 연도가 있는 것을 확인
---person에서 확인
-select * from @NHISNSC_database.PERSON
-where person_id in (
-					select person_id from @NHISNSC_rawdata.@NHIS_JK
-					where sex=1 and STND_Y=2011 and person_id in (
-								select PERSON_ID from @NHISNSC_rawdata.@NHIS_JK
-								where sex=2 and STND_Y=2012
-								)
-					);
--- 95292839의 gender 값이 여성(8532)이기에 남성(8507)로 변경
-update @NHISNSC_database.PERSON
-set gender_concept_id='8507' 
-where person_id = 95292839;
-
-update @NHISNSC_database.PERSON
-set gender_source_value=1
-where person_id=95292839;
