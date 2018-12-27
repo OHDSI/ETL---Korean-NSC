@@ -31,7 +31,7 @@
  1. 테이블 생성 
 ***************************************/ 
  
-
+/*
 CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE ( 
      device_exposure_id				BIGINT	 		PRIMARY KEY , 
      person_id						INTEGER			NOT NULL , 
@@ -46,7 +46,7 @@ CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE (
 	 device_source_value			VARCHAR(50)		NULL ,
 	 device_source_concept_id		integer			NULL 
     );
-
+*/
 /**************************************
  2. 데이터 입력 및 확인
 ***************************************/  

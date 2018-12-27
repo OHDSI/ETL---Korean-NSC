@@ -26,7 +26,7 @@
 /**************************************
  1. 테이블 생성 
 ***************************************/ 
-`
+/*
 CREATE TABLE @NHISNSC_database.PAYER_PLAN_PERIOD
     (
      payer_plan_period_id				BIGINT						NOT NULL , 
@@ -38,7 +38,7 @@ CREATE TABLE @NHISNSC_database.PAYER_PLAN_PERIOD
 	 family_source_value				VARCHAR(50) 				NULL   
 	)
  ; -- DROP TABLE @ResultDatabaseSchema.PAYER_PLAN_PERIOD
- 
+*/ 
  
 /**************************************
  2. 데이터 입력 및 확인

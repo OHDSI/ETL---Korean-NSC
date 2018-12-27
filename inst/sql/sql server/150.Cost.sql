@@ -23,6 +23,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/ 
+/*
 CREATE TABLE @NHISNSC_database.COST (
 	cost_id	bigint	primary key,
 	cost_event_id	bigint	not null,
@@ -47,7 +48,7 @@ CREATE TABLE @NHISNSC_database.COST (
 	revenue_code_source_value	varchar(50),
 	drg_source_value	varchar(50)
 );
-
+*/
 /**************************************
  2. 데이터 입력
     1) Visit

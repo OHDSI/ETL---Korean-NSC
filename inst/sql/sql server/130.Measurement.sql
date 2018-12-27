@@ -18,7 +18,7 @@
 /**************************************
  0. 테이블 생성  (33440451)
 ***************************************/ 
-
+/*
 IF OBJECT_ID('@NHISNSC_database.MEASUREMENT', 'U') IS NULL
 CREATE TABLE @NHISNSC_database.MEASUREMENT
     (
@@ -41,7 +41,7 @@ CREATE TABLE @NHISNSC_database.MEASUREMENT
 	 unit_source_value					VARCHAR(50) 				NULL,
 	 value_source_value					VARCHAR(50)					NULL
 	);
-
+*/
 
 -- measurement mapping table(temp)
 

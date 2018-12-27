@@ -76,6 +76,7 @@ and a.key_seq=c.key_seq
 /**************************************
  2. 테이블 생성
 ***************************************/ 
+/*
 CREATE TABLE @NHISNSC_database.PROCEDURE_OCCURRENCE ( 
      procedure_occurrence_id		BIGINT			PRIMARY KEY, 
      person_id						INTEGER			NOT NULL, 
@@ -91,7 +92,7 @@ CREATE TABLE @NHISNSC_database.PROCEDURE_OCCURRENCE (
 	 qualifier_source_value			VARCHAR(50)		NULL
     )
 ;
-
+*/
 /**************************************
  3. 30T를 이용하여 데이터 입력
 ***************************************/
