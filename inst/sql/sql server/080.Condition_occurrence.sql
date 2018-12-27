@@ -19,6 +19,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/ 
+/*
 CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE ( 
      condition_occurrence_id		BIGINT			PRIMARY KEY, 
      person_id						INTEGER			NOT NULL , 
@@ -32,7 +33,7 @@ CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE (
      condition_source_value			VARCHAR(50),
 	 condition_source_concept_id	VARCHAR(50)
 );
-
+*/
 /**************************************
  2. 데이터 입력
     1) 관측시작일: 자격년도.01.01이 디폴트. 출생년도가 그 이전이면 출생년도.01.01
@@ -67,20 +68,24 @@ select
 from (
 	select
 		a.master_seq, a.person_id, a.key_seq, a.seq_no, b.recu_fr_dt,
-		case when b.form_cd in ('02', '04', '06', '07', '10', '12') then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt, 112)) 
-			when b.form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and b.in_pat_cors_type in ('11', '21', '31') then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt, 112))
+		case when b.form_cd in ('02', '2', '04', '06', '07', '10', '12') and b.vscn > 0 then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt , 112)) 
+			when b.form_cd in ('02', '2', '04', '06', '07', '10', '12') and b.vscn = 0 then DATEADD(DAY, cast(b.vscn as int), convert(date, b.recu_fr_dt , 112)) 
+			when b.form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and b.in_pat_cors_type in ('11', '21', '31') and vscn > 0 then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt, 112)) 
+			when b.form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and b.in_pat_cors_type in ('11', '21', '31') and vscn = 0 then DATEADD(DAY, cast(b.vscn as int), convert(date, b.recu_fr_dt, 112)) 
 			else convert(date, b.recu_fr_dt, 112)
 		end as visit_end_date,
 		c.sick_sym,
-		case when c.sick_sym=b.main_sick then '44786627' --primary condition
-			when c.sick_sym=b.sub_sick then '44786629' --secondary condition
-			else '45756845' --third condition
+		case when c.SEQ_NO=1 then '44786627'--primary condition
+			when c.SEQ_NO=2 then '44786629' --secondary condition
+			when c.SEQ_NO=3 then '45756845' --third condition
+			when c.SEQ_NO=4 then '45756846'	-- 4th condition
+			else '45756847'					-- 5상병을 포함한 나머지
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
-	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
-		@NHISNSC_rawdata.NHID_GY20_T1 b,
-		@NHISNSC_rawdata.NHID_GY40_T1 c,
-		@NHISNSC_database.observation_period d --추가
+	from (select master_seq, person_id, key_seq, seq_no from nhis_nsc_new.dbo.SEQ_MASTER where source_table='140') a, 
+		NHISNSC2013Original.dbo.NHID_GY20_T1 b, --@처리해줘야됨
+		NHISNSC2013Original.dbo.NHID_GY40_T1 c,
+		nhis_nsc_new.dbo.observation_period d --추가
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq
@@ -91,6 +96,6 @@ from (
 	from @NHISNSC_database.source_to_concept_map a 
 	--left join OMOP_VOCABULARY_2018.dbo.CONCEPT b
 	--on a.target_concept_id=b.concept_id
-	where domain_id='condition' and a.invalid_reason is null 
+	where domain_id='condition' and a.invalid_reason = ''
 	) as n 
 where m.sick_sym=n.source_code

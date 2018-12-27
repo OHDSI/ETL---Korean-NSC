@@ -22,7 +22,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/  
-
+/*
 -- death table 생성
 CREATE TABLE  @NHISNSC_database.DEATH
 (
@@ -34,7 +34,7 @@ CREATE TABLE  @NHISNSC_database.DEATH
 	cause_source_concept_id				INTEGER			NULL,
 	primary key (person_id)
 );
-
+*/
 
 -- 임시 death mapping table  -- 00:00:01
  SELECT	source_code, source_code_description, target_concept_id

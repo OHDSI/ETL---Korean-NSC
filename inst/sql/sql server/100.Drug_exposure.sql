@@ -181,6 +181,7 @@ on A.div_cd=b.source_code
 /**************************************
  2. 테이블 생성
 ***************************************/  
+/*
 CREATE TABLE @NHISNSC_database.DRUG_EXPOSURE ( 
      drug_exposure_id				BIGINT	 	NOT NULL , 
      person_id						INTEGER			NOT NULL , 
@@ -204,7 +205,7 @@ CREATE TABLE @NHISNSC_database.DRUG_EXPOSURE (
 	 route_source_value				VARCHAR(50)		NULL ,
 	 dose_unit_source_value			VARCHAR(50)		NULL
     );
-	
+*/	
 
 /**************************************
  3. 30T를 이용하여 데이터 입력
@@ -221,7 +222,9 @@ SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_num
 	CONVERT(date, a.recu_fr_dt, 112) as drug_exposure_start_date,
 	--DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_mqty_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (수정: 2017.02.17 by 이성원)
 	DATEADD(day, convert(float, a.mdcn_exec_freq)-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date,
-	38000180 as drug_type_concept_id,
+	case when a.FORM_CD in ('02', '2', '04', '06', '10', '12') then 38000180 
+		when a.FORM_CD not in ('02', '2', '04', '06', '10', '12') then 581452 
+		end as drug_type_concept_id, 
 	NULL as stop_reason,
 	NULL as refills,
 	convert(float, a.dd_mqty_exec_freq) * convert(float, a.mdcn_exec_freq) * convert(float, a.dd_mqty_freq) as quantity,
@@ -254,8 +257,11 @@ FROM
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_30T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
+		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a,
+	AND x.seq_no=y.seq_no
+	and y.key_seq=z.KEY_SEQ
+	and y.person_id=z.PERSON_ID	) a,
 	(select * from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) b
 where a.div_cd=b.source_code
 ;
@@ -275,7 +281,9 @@ SELECT convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_num
 	CONVERT(date, a.recu_fr_dt, 112) as drug_exposure_start_date,
 	-- DATEADD(day, CEILING(convert(float, a.mdcn_exec_freq)/convert(float, a.dd_exec_freq))-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date, (수정: 2017.02.17 by 이성원)
 	DATEADD(day, convert(float, a.mdcn_exec_freq)-1, convert(date, a.recu_fr_dt, 112)) as drug_exposure_end_date,
-	38000177 as drug_type_concept_id,
+	case when a.FORM_CD in ('02', '2', '04', '06', '10', '12') then 38000180 
+		when a.FORM_CD not in ('02', '2', '04', '06', '10', '12') then 581452 
+		end as drug_type_concept_id, 
 	NULL as stop_reason,
 	NULL as refills,
 	convert(float, a.dd_mqty_freq) * convert(float, a.dd_exec_freq) * convert(float, a.mdcn_exec_freq) as quantity,
@@ -299,8 +307,11 @@ FROM
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_60T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
+	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a,
+	AND x.seq_no=y.seq_no
+	and y.key_seq=z.KEY_SEQ
+	and y.person_id=z.PERSON_ID	) a,
 	(select * from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) b
 where a.div_cd=b.source_code
 ;
