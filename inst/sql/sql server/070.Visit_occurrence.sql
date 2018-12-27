@@ -18,6 +18,7 @@
 /**************************************
  1. 테이블 생성
 ***************************************/ 
+/*
 CREATE TABLE @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_occurrence_id	bigint	primary key,
 	person_id			integer	not null,
@@ -32,7 +33,7 @@ CREATE TABLE @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_source_value	varchar(50),
 	visit_source_concept_id	integer
 );
-
+*/
 /**************************************
  2. 데이터 입력
 ***************************************/ 
@@ -42,20 +43,20 @@ insert into @NHISNSC_database.VISIT_OCCURRENCE (
 	visit_source_value, visit_source_concept_id
 )
 select 
-	key_seq as visit_concept_id,
+	key_seq as visit_occurrence_id,
 	person_id as person_id,
-	case when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type in ('11', '21', '31') then 9203 --입원 + 응급
-		when form_cd in ('02', '04', '06', '07', '10', '12') and in_pat_cors_type not in ('11', '21', '31') then 9201 --입원 + 입원
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') then 9203 --외래 + 응급
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type not in ('11', '21', '31') then 9202 --외래 + 외래
+	case when form_cd in ('02', '2', '04', '06', '07', '10', '12') and in_pat_cors_type in ('11', '21', '31') then 9203 --입원 + 응급
+		when form_cd in ('02', '2', '04', '06', '07', '10', '12') and in_pat_cors_type not in ('11', '21', '31') then 9201 --입원 + 입원
+		when form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') then 9203 --외래 + 응급
+		when form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type not in ('11', '21', '31') then 9202 --외래 + 외래
 		else 0
 	end as visit_concept_id,
 	convert(date, recu_fr_dt, 112) as visit_start_date,
 	null as visit_start_time,
-	case when form_cd in ('02', '04', '06', '07', '10', '12') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
-		when form_cd in ('02', '04', '06', '07', '10', '12') and VSCN = 0 then DATEADD(DAY, convert(int, vscn)  ,convert(date, recu_fr_dt, 112)) 
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
-		when form_cd in ('03', '05', '08', '09', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN = 0 then DATEADD(DAY, convert(int, vscn), convert(date, recu_fr_dt, 112))
+	case when form_cd in ('02', '2', '04', '06', '07', '10', '12') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
+		when form_cd in ('02', '2', '04', '06', '07', '10', '12') and VSCN = 0 then DATEADD(DAY, convert(int, vscn)  ,convert(date, recu_fr_dt, 112)) 
+		when form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN > 0 then DATEADD(DAY, vscn-1, convert(date, recu_fr_dt, 112))
+		when form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and in_pat_cors_type in ('11', '21', '31') and VSCN = 0 then DATEADD(DAY, convert(int, vscn), convert(date, recu_fr_dt, 112))
 		else convert(date, recu_fr_dt, 112)
 	end as visit_end_date,
 	null as visit_end_time,
