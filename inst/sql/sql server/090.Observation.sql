@@ -29,6 +29,7 @@
 --drop table #observation_mapping09
 
 --IF OBJECT_ID(@ResultDatabaseSchema.OBSERVATION', 'U') IS NULL
+/*
 CREATE TABLE @NHISNSC_database.OBSERVATION
     (
      observation_id						BIGINT						NOT NULL , 
@@ -50,7 +51,7 @@ CREATE TABLE @NHISNSC_database.OBSERVATION
 	 qualifier_source_value				VARCHAR(50) 				NULL
 	)
 ;
-	
+*/
 	
 -- observation mapping table(temp)
 CREATE TABLE #observation_mapping
@@ -453,3 +454,8 @@ where meas_value != ''  and substring(meas_type, 1, 30) in ('HCHK_PMH_CD1', 'HCH
 																	'MOV20_WEK_FREQ_ID', 'MOV30_WEK_FREQ_ID', 'WLK30_WEK_FREQ_ID')
 group by meas_type 
 order by meas_type 
+
+
+
+
+-- 만약에 okay 하면 여기에 추가로 넣기~!
