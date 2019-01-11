@@ -99,3 +99,55 @@ from (
 	where domain_id='condition' and a.invalid_reason = ''
 	) as n 
 where m.sick_sym=n.source_code
+
+
+/****************************************************************
+ Insert data from 40T which are not mapped with mapping table
+****************************************************************/
+INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
+	(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_end_date,
+	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
+	condition_source_concept_id)
+select
+	 convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by person_id desc))) as condition_occurrence_id,
+	person_id as person_id,
+	0 as condition_concept_id,
+	convert(date, recu_fr_dt, 112) as condition_start_date,
+	visit_end_date as condition_end_date,
+	sick_order as condition_type_concept_id,
+	null as stop_reason,
+	null as provider_id,
+	key_seq as visit_occurrence_id,
+	sick_sym as condition_source_value,
+	null as condition_source_concept_id
+from 
+	(select
+		a.master_seq, a.person_id, a.key_seq, a.seq_no, b.recu_fr_dt,
+		case when b.form_cd in ('02', '2', '04', '06', '07', '10', '12') and b.vscn > 0 then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt , 112)) 
+			when b.form_cd in ('02', '2', '04', '06', '07', '10', '12') and b.vscn = 0 then DATEADD(DAY, cast(b.vscn as int), convert(date, b.recu_fr_dt , 112)) 
+			when b.form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and b.in_pat_cors_type in ('11', '21', '31') and vscn > 0 then DATEADD(DAY, b.vscn-1, convert(date, b.recu_fr_dt, 112)) 
+			when b.form_cd in ('03', '3', '05', '08', '8', '09', '9', '11', '13', '20', '21', 'ZZ') and b.in_pat_cors_type in ('11', '21', '31') and vscn = 0 then DATEADD(DAY, cast(b.vscn as int), convert(date, b.recu_fr_dt, 112)) 
+			else convert(date, b.recu_fr_dt, 112)
+		end as visit_end_date,
+		c.sick_sym,
+		case when c.SEQ_NO=1 then '44786627'--primary condition
+			when c.SEQ_NO=2 then '44786629' --secondary condition
+			when c.SEQ_NO=3 then '45756845' --third condition
+			when c.SEQ_NO=4 then '45756846'	-- 4th condition
+			else '45756847'					-- 5상병을 포함한 나머지
+		end as sick_order,
+		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
+	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
+		@NHISNSC_rawdata.NHID_GY20_T1 b, --@처리해줘야됨
+		@NHISNSC_rawdata.NHID_GY40_T1 c,
+		@NHISNSC_database.observation_period d --추가
+	where a.person_id=b.person_id
+		and a.key_seq=b.key_seq
+		and a.key_seq=c.key_seq
+		and a.seq_no=c.seq_no
+		and b.person_id=d.person_id --추가
+		and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m --추가
+where m.key_seq not in (select visit_occurrence_id from nhis_nsc_new.dbo.CONDITION_OCCURRENCE)
+
+
+
