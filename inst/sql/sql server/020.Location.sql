@@ -11,7 +11,7 @@
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: Create Location table
+ --Description: Location 테이블 생성
  --Generating Table: LOCATION
 ***************************************/
 
