@@ -195,7 +195,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
 			oservation_time = null,
 			b.observation_type_concept_id as observation_type_concept_id,
-				CASE WHEN b.answer is not null
+				CASE WHEN b.answer is not null and b.value_as_number is not null
 				then b.value_as_number
 				else a.meas_value
 				END as value_as_number,
@@ -216,7 +216,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 							and substring(hchk_year, 1, 4) in ('2002', '2003', '2004', '2005', '2006', '2007', '2008') then cast(cast(meas_value as int)-1 as varchar(50))
 				else meas_value
 				end as meas_value 			
-			from @NHISNSC_rawdata.@GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #observation_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') = isnull(cast(b.answer as char),'0')
@@ -252,7 +252,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
 			oservation_time = null,
 			b.observation_type_concept_id as observation_type_concept_id,
-				CASE WHEN b.answer is not null
+				CASE WHEN b.answer is not null and b.value_as_number is not null
 				then b.value_as_number
 				else a.meas_value
 				END as value_as_number,
@@ -268,7 +268,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 			qualifier_source_Value = null
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value
-			from @NHISNSC_rawdata.@GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #observation_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') >= isnull(cast(b.answer as char),'0')
@@ -324,7 +324,7 @@ select	case	when a.meas_type = 'TM1_DRKQTY_RSPS_CD' then cast(concat(c.master_se
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
 			oservation_time = null,
 			b.observation_type_concept_id as observation_type_concept_id,
-				CASE WHEN b.answer is not null
+				CASE WHEN b.answer is not null and b.value_as_number is not null
 				then b.value_as_number
 				else a.meas_value
 				END as value_as_number,
@@ -340,7 +340,7 @@ select	case	when a.meas_type = 'TM1_DRKQTY_RSPS_CD' then cast(concat(c.master_se
 			qualifier_source_Value = null
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value
-			from @NHISNSC_rawdata.@GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #observation_mapping09 b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') >= isnull(cast(b.answer as char),'0')
@@ -368,7 +368,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
 			oservation_time = null,
 			b.observation_type_concept_id as observation_type_concept_id,
-				CASE WHEN b.answer is not null
+				CASE WHEN b.answer is not null and b.value_as_number is not null
 				then b.value_as_number
 				else a.meas_value
 				END as value_as_number,
@@ -384,7 +384,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 			qualifier_source_Value = null
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value
-			from @NHISNSC_rawdata.@GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #observation_mapping09 b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') = isnull(cast(b.answer as char),'0')
@@ -398,12 +398,13 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 /*************************************
  2. 자격 테이블 행을 열로 전환
  *************************************/
+/*
 select STND_Y as hchk_year, person_id, jk_type, jk_value into @NHISNSC_rawdata.JK_VERTICAL
-from @NHISNSC_rawdata.@NHIS_JK
+from @NHISNSC_rawdata.NHID_JK
 unpivot (jk_value for jk_type in ( -- 2개 자격 항목
         CTRB_PT_TYPE_CD, DFAB_GRD_CD
 )) as unpivortn
-
+*/
 /**************************************
  2. 소득분위 데이터 입력
 ***************************************/ 
@@ -418,7 +419,7 @@ select			case when a.jk_type = 'CTRB_PT_TYPE_CD' then cast(concat(c.master_seq, 
 				cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
 				observation_time = null,
 				b.observation_type_concept_id as observation_type_concept_id,
-				CASE WHEN b.answer is not null then b.value_as_number
+				CASE WHEN b.answer is not null and b.value_as_number is not null then b.value_as_number
 					else a.jk_value
 				END as value_as_number,
 				value_as_string = null,
@@ -440,10 +441,15 @@ select			case when a.jk_type = 'CTRB_PT_TYPE_CD' then cast(concat(c.master_seq, 
 	where a.jk_value != '' and b.meas_type = 'CTRB_PT_TYPE_CD' 
 			and c.source_table='JKT'
 
+
+drop table #observation_mapping
+drop table #observation_mapping09
+
+
 /*****************************************************
 					테이블 확인
 *****************************************************/
-
+/*
 --------------변환전 건수, 29
 select distinct meas_type, count(meas_type)
 from @NHISNSC_rawdata.@GJ_VERTICAL
@@ -455,7 +461,7 @@ where meas_value != ''  and substring(meas_type, 1, 30) in ('HCHK_PMH_CD1', 'HCH
 group by meas_type 
 order by meas_type 
 
-
+*/
 
 
 -- 만약에 okay 하면 여기에 추가로 넣기~!
