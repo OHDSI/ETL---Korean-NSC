@@ -116,8 +116,6 @@ INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
 select
-	count(*)
-/*
 	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
 	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
 	m.person_id as person_id,
@@ -130,7 +128,7 @@ select
 	m.key_seq as visit_occurrence_id,
 	m.sick_sym as condition_source_value,
 	null as condition_source_concept_id
-	*/
+
 from (
 	select
 		a.master_seq, a.person_id, a.key_seq, a.seq_no, b.recu_fr_dt,
