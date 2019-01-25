@@ -87,7 +87,7 @@ FROM
 			case when x.dd_mqty_exec_freq is not null and x.dd_mqty_exec_freq > '0' and isnumeric(x.dd_mqty_exec_freq)=1 then cast(x.dd_mqty_exec_freq as float) else 1 end as dd_mqty_exec_freq,
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.NHID_GY30_T1 x, @NHISNSC_database.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_30T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a JOIN (select * from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null) b 
@@ -123,7 +123,7 @@ FROM
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and x.dd_exec_freq > '0' and isnumeric(x.dd_exec_freq)=1 then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.NHID_GY60_T1 x, @NHISNSC_database.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_60T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a JOIN (select * from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null) b 
@@ -138,7 +138,7 @@ insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select  count(*) /*
+select  
 		convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
 		0 as device_concept_id ,
@@ -154,14 +154,14 @@ case	when a.AMT is not null and cast(a.AMT as float) > 0 and a.UN_COST is not nu
 		a.key_seq as visit_occurence_id,
 		a.div_cd as device_source_value,
 		null as device_source_concept_id
-		*/
+
 FROM 
 	(SELECT x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd, 
 			case when x.mdcn_exec_freq is not null and x.mdcn_exec_freq > '0' and isnumeric(x.mdcn_exec_freq)=1 then cast(x.mdcn_exec_freq as float) else 1 end as mdcn_exec_freq,
 			case when x.dd_mqty_exec_freq is not null and x.dd_mqty_exec_freq > '0' and isnumeric(x.dd_mqty_exec_freq)=1 then cast(x.dd_mqty_exec_freq as float) else 1 end as dd_mqty_exec_freq,
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.NHID_GY30_T1 x, @NHISNSC_database.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_30T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
@@ -176,7 +176,7 @@ insert into @NHISNSC_rawdata.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select 	count(*) /*
+select 	
 		convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
 		0 as device_concept_id ,
@@ -192,22 +192,19 @@ case	when a.AMT is not null and cast(a.AMT as float) > 0 and a.UN_COST is not nu
 		a.key_seq as visit_occurence_id,
 		a.div_cd as device_source_value,
 		null as device_source_concept_id
-		*/
+		
 FROM 
 	(SELECT x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd, 
 			case when x.mdcn_exec_freq is not null and x.mdcn_exec_freq > '0' and isnumeric(x.mdcn_exec_freq)=1 then cast(x.mdcn_exec_freq as float) else 1 end as mdcn_exec_freq,
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and x.dd_exec_freq > '0' and isnumeric(x.dd_exec_freq)=1 then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.NHID_GY60_T1 x, @NHISNSC_database.SEQ_MASTER y
+	FROM @NHISNSC_rawdata.@NHIS_60T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
 where a.div_cd not in (select source_code from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null)
 ;
-
-
-
 
 drop table #mapping_table;
 

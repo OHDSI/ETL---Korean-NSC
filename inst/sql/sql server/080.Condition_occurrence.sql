@@ -39,7 +39,7 @@ CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE (
 ***************************************/ 
 select a.*, b.invalid_reason as concept_invalid_reason
 into #mapping_table
-from nhis_nsc_new.dbo.source_to_concept_map a join OMOP_VOCABULARY_2019.dbo.CONCEPT b on a.target_concept_id=b.concept_id;
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
 
 update #mapping_table
 set invalid_reason=REPLACE(invalid_reason, '', NULL)
@@ -93,17 +93,17 @@ from (
 			else '45756847'					-- 5상병을 포함한 나머지
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
-	from (select master_seq, person_id, key_seq, seq_no from nhis_nsc_new.dbo.SEQ_MASTER where source_table='140') a, 
-		NHISNSC2013Original.dbo.NHID_GY20_T1 b, --@처리해줘야됨
-		NHISNSC2013Original.dbo.NHID_GY40_T1 c,
-		nhis_nsc_new.dbo.observation_period d --추가
+	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
+		@NHISNSC_rawdata.@NHIS_20T b, --@처리해줘야됨
+		@NHISNSC_rawdata.@NHIS_40T c,
+		@NHISNSC_database.observation_period d --추가
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq
 	and a.seq_no=c.seq_no
 	and b.person_id=d.person_id --추가
 	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --추가
-	(select source_code from #mapping_table a where domain_id='condition' and invalid_reason is null and concept_invalid_reason is null) as n
+	(select * from #mapping_table a where domain_id='condition' and invalid_reason is null and concept_invalid_reason is null) as n
 where m.sick_sym=n.source_code;
 
 
@@ -148,10 +148,10 @@ from (
 			else '45756847'					-- 5상병을 포함한 나머지
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
-	from (select master_seq, person_id, key_seq, seq_no from nhis_nsc_new.dbo.SEQ_MASTER where source_table='140') a, 
-		NHISNSC2013Original.dbo.NHID_GY20_T1 b, --@처리해줘야됨
-		NHISNSC2013Original.dbo.NHID_GY40_T1 c,
-		nhis_nsc_new.dbo.observation_period d --추가
+	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
+		@NHISNSC_rawdata.@NHIS_20T b, --@처리해줘야됨
+		@NHISNSC_rawdata.@NHIS_40T c,
+		@NHISNSC_database.observation_period d --추가
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq

@@ -6,10 +6,10 @@
 @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
 @NHISNSC_database: DB for NHIS-NSC in CDM format
 @NHIS_JK: JK table in NHIS NSC
-@NHIS_20T: 20 table in NHIS NSC
+@@NHIS_20T: 20 table in NHIS NSC
 @NHIS_30T: 30 table in NHIS NSC
 @NHIS_40T: 40 table in NHIS NSC
-@NHIS_60T: 60 table in NHIS NSC
+@@NHIS_60T: 60 table in NHIS NSC
 @NHIS_GJ: GJ table in NHIS NSC
 @CONDITION_MAPPINGTABLE : mapping table between KCD and OMOP vocabulary
 @DRUG_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
@@ -22,6 +22,7 @@
 /**************************************
  1. 사전 준비
 ***************************************/ 
+/*
 -- 1) 30T의 항/목 코드 현황 체크매핑
 select clause_cd, item_cd, count(clause_cd)
 from @NHISNSC_rawdata.@NHIS_30T
@@ -55,19 +56,19 @@ group by dd_mqty_freq
 -- 3) 60T의 계산식에 들어갈 숫자 데이터 정합성 체크
 -- 1회 투약량
 select dd_mqty_freq, count(dd_mqty_freq) as cnt
-from @NHISNSC_rawdata.@NHIS_60T
+from @NHISNSC_rawdata.@@NHIS_60T
 where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
 group by dd_mqty_freq
 
 -- 1일 투약량
 select dd_exec_freq, count(dd_exec_freq) as cnt
-from @NHISNSC_rawdata.@NHIS_60T
+from @NHISNSC_rawdata.@@NHIS_60T
 where dd_exec_freq is not null and ISNUMERIC(dd_exec_freq) = 0
 group by dd_exec_freq
 
 -- 총투여일수 또는 실시횟수
 select mdcn_exec_freq, count(mdcn_exec_freq) as cnt
-from @NHISNSC_rawdata.@NHIS_60T
+from @NHISNSC_rawdata.@@NHIS_60T
 where mdcn_exec_freq is not null and ISNUMERIC(mdcn_exec_freq) = 0
 group by mdcn_exec_freq
 --> 결과는 "08. 참고) 30T, 60T의 코드 분석.xlsx" 참고
@@ -75,7 +76,7 @@ group by mdcn_exec_freq
 
 -- 4) 매핑 테이블의 약코드 1:N 건수 체크
 select source_code, count(source_code)
-from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
 group by source_code
 having count(source_code)>1
 --> 1:N 매핑 약코드 없음
@@ -85,13 +86,13 @@ having count(source_code)>1
 --30T
 select count(*) from @NHISNSC_rawdata.@NHIS_30T
 where div_cd in (select source_code
-				from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
 				group by source_code
 				having count(source_code)>1)
 --60T
-select count(*) from @NHISNSC_rawdata.@NHIS_60T
+select count(*) from @NHISNSC_rawdata.@@NHIS_60T
 where div_cd in (select source_code
-				from   (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
 				group by source_code
 				having count(source_code)>1)
 
@@ -99,14 +100,14 @@ where div_cd in (select source_code
 --30T
 select count(*) from @NHISNSC_rawdata.@NHIS_30T
 where DIV_CD not in (
-select DIV_CD from @NHISNSC_rawdata.@NHIS_30T a, (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+select DIV_CD from @NHISNSC_rawdata.@@NHIS_30Ta, (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug' and invalid_reason is null) b
 where a.DIV_CD=b.source_code
 )
 
 --60T
-select count(*) from @NHISNSC_rawdata.@NHIS_60T
+select count(*) from @NHISNSC_rawdata.@@NHIS_60T
 where DIV_CD not in (
-select DIV_CD from @NHISNSC_rawdata.@NHIS_60T a, (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+select DIV_CD from @NHISNSC_rawdata.@@NHIS_60T a, (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug' and invalid_reason is null) b
 where a.DIV_CD=b.source_code
 )
 
@@ -114,9 +115,9 @@ where a.DIV_CD=b.source_code
 -- 5) 변환 예상 건수 파악
 --30T의 변환예상 건수
 select count(a.key_seq)
-from @NHISNSC_rawdata.@NHIS_30T a, 
+from @NHISNSC_rawdata.@@NHIS_30Ta, 
 	(select source_code
-	from @NHISNSC_database.@source_to_concept_map
+	from @NHISNSC_database.source_to_concept_map
 	where domain_id='drug' and invalid_reason is null ) as b, 
 	@NHISNSC_rawdata.NHID_GY20_T1 c
 where a.div_cd=b.source_code
@@ -124,19 +125,22 @@ and a.key_seq=c.key_seq
 
 --60T의 변환예상 건수
 select count(a.key_seq)
-from @NHISNSC_rawdata.@NHIS_60T a, 
+from @NHISNSC_rawdata.@@NHIS_60T a, 
 	(select source_code
-	from @NHISNSC_database.@source_to_concept_map 
+	from @NHISNSC_database.source_to_concept_map 
 	where domain_id='drug' and invalid_reason is null) b, 
 	@NHISNSC_rawdata.NHID_GY20_T1 c
 where a.div_cd=b.source_code
 and a.key_seq=c.key_seq
 
+*/
 
 /**************************************
  1.1. drug_exposure_end_date 계산 방법을 정하기 위해 실행한 쿼리들 (2017.02.17 by 유승찬)
 ***************************************/ 
 -- observation period 범위 밖의 건수
+/*
+
 select a.person_id, a.drug_exposure_id, a.drug_exposure_start_date, a.drug_exposure_end_date, b.observation_period_start_date, b.observation_period_end_date, c.death_date
 from @NHISNSC_database.drug_exposure a, @NHISNSC_database.observation_period b, @NHISNSC_database.DEATH C
 where a.person_id=b.person_id
@@ -147,8 +151,8 @@ or a.drug_exposure_end_date > b.observation_period_end_date)
 select b.concept_name, x.*
 from 
 (select A.*, B.target_concept_id
-from @NHISNSC_rawdata.@NHIS_30T AS A
-join( select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
+from @NHISNSC_rawdata.@@NHIS_30TAS A
+join( select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_EXEC_FREQ as float)<1
    and cast(DD_MQTY_EXEC_FREQ as float)>=0) x
@@ -158,8 +162,8 @@ on A.div_cd=b.source_code
 select b.concept_name, x.*
 from 
 (select A.*, B.target_concept_id
-from @NHISNSC_rawdata.@NHIS_30T AS A
-join (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
+from @NHISNSC_rawdata.@@NHIS_30TAS A
+join (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_EXEC_FREQ as float)>1) x
    join @NHISNSC_database.CONCEPT b
@@ -169,14 +173,14 @@ on A.div_cd=b.source_code
 select b.concept_name, x.*
 from 
 (select A.*, B.target_concept_id
-from @NHISNSC_rawdata.@NHIS_60T AS A
-join (select * from @NHISNSC_database.@source_to_concept_map where domain_id='drug') as B
+from @NHISNSC_rawdata.@@NHIS_60T AS A
+join (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
 on A.div_cd=b.source_code 
    where cast(DD_MQTY_FREQ as float)>1) x
    join @NHISNSC_database.concept b
    on x.target_concept_id= b.concept_id
 
- 
+ */
 
 /**************************************
  2. 테이블 생성
@@ -267,9 +271,9 @@ FROM
 			case when x.clause_cd is not null and len(x.clause_cd) = 1 and isnumeric(x.clause_cd)=1 and convert(int, x.clause_cd) between 1 and 9 then '0' + x.clause_cd else x.clause_cd end as clause_cd,
 			case when x.item_cd is not null and len(x.item_cd) = 1 and isnumeric(x.item_cd)=1 and convert(int, x.item_cd) between 1 and 9 then '0' + x.item_cd else x.item_cd end as item_cd,
 			y.master_seq, y.person_id			
-	FROM @NHISNSC_rawdata.NHIS_30T x, 
+	FROM @NHISNSC_rawdata.@NHIS_30T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
-		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.NHIS_20T) z
+		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
@@ -317,9 +321,9 @@ FROM
 			case when x.dd_mqty_freq is not null and isnumeric(x.dd_mqty_freq)=1 and cast(x.dd_mqty_freq as float) > '0' then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and isnumeric(x.dd_exec_freq)=1 and cast(x.dd_exec_freq as float) > '0' then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			y.master_seq, y.person_id			
-	FROM @NHISNSC_rawdata.NHIS_60T x, 
+	FROM @NHISNSC_rawdata.@NHIS_60T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
-	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.NHIS_20T) z
+	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
@@ -376,9 +380,9 @@ FROM
 			case when x.clause_cd is not null and len(x.clause_cd) = 1 and isnumeric(x.clause_cd)=1 and convert(int, x.clause_cd) between 1 and 9 then '0' + x.clause_cd else x.clause_cd end as clause_cd,
 			case when x.item_cd is not null and len(x.item_cd) = 1 and isnumeric(x.item_cd)=1 and convert(int, x.item_cd) between 1 and 9 then '0' + x.item_cd else x.item_cd end as item_cd,
 			y.master_seq, y.person_id			
-	FROM @NHISNSC_rawdata.NHIS_30T x, 
+	FROM @NHISNSC_rawdata.@NHIS_30T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
-		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.NHIS_20T) z
+		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
@@ -425,9 +429,9 @@ FROM
 			case when x.dd_mqty_freq is not null and isnumeric(x.dd_mqty_freq)=1 and cast(x.dd_mqty_freq as float) > '0' then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and isnumeric(x.dd_exec_freq)=1 and cast(x.dd_exec_freq as float) > '0' then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			y.master_seq, y.person_id			
-	FROM @NHISNSC_rawdata.NHIS_60T x, 
+	FROM @NHISNSC_rawdata.@NHIS_60T x, 
 	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
-	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.NHIS_20T) z
+	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
@@ -457,7 +461,7 @@ where a.person_id=b.person_id
 and (b.death_date < a.drug_exposure_start_date
 or b.death_date < a.drug_exposure_end_date)
 
-
+/*
 -------------------------------------------
 참고) http://tennesseewaltz.tistory.com/236
 UPDATE A
@@ -467,3 +471,4 @@ UPDATE A
           JOIN TABLE_BBB B ON A.OPCode = B.OP_CODE
     WHERE A.LineCode = '조건'
 -------------------------------------------
+*/
