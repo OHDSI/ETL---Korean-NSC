@@ -31,7 +31,7 @@ select
             else convert(date, a.stnd_y + '1231', 112)
       end as observation_period_end_date --관측종료일
 into #observation_period_temp1
-from @NHISNSC_rawdata.@NHID_JK a,
+from @NHISNSC_rawdata.@NHIS_JK a,
       @NHISNSC_database.person b left join @NHISNSC_database.death c
       on b.person_id=c.person_id
 where a.person_id=b.person_id
