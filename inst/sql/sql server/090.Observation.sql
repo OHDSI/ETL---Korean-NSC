@@ -53,6 +53,30 @@ CREATE TABLE @NHISNSC_database.OBSERVATION
 ;
 */
 	
+-- Creating Vertical tables
+select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @NHISNSC_rawdata.GJ_VERTICAL
+from @NHISNSC_rawdata.@NHIS_GJ
+unpivot (meas_value for meas_type in ( -- 47 검진 항목
+    height, weight, waist, bp_high, bp_lwst,
+    blds, tot_chole, triglyceride, hdl_chole, ldl_chole,
+    hmg, gly_cd, olig_occu_cd, olig_ph, olig_prote_cd,
+    creatinine, sgot_ast, sgpt_alt, gamma_gtp, hchk_pmh_cd1,
+    hchk_pmh_cd2, hchk_pmh_cd3, hchk_apop_pmh_yn, hchk_hdise_pmh_yn, hchk_hprts_pmh_yn,
+    hchk_diabml_pmh_yn, hchk_hplpdm_pmh_yn, hchk_etcdse_pmh_yn, hchk_phss_pmh_yn, fmly_liver_dise_patien_yn,
+    fmly_hprts_patien_yn, fmly_apop_patien_yn, fmly_hdise_patien_yn, fmly_diabml_patien_yn, fmly_cancer_patien_yn,
+    smk_stat_type_rsps_cd, smk_term_rsps_cd, cur_smk_term_rsps_cd, cur_dsqty_rsps_cd, past_smk_term_rsps_cd,
+    past_dsqty_rsps_cd, dsqty_rsps_cd, drnk_habit_rsps_Cd, tm1_drkqty_rsps_cd, exerci_freq_rsps_cd,
+    mov20_wek_freq_id, mov30_wek_freq_id, wlk30_wek_freq_id
+)) as unpivortn
+
+
+select STND_Y as hchk_year, person_id, jk_type, jk_value into @NHISNSC_rawdata.JK_VERTICAL
+from @NHISNSC_rawdata.@NHIS_JK
+unpivot (jk_value for jk_type in ( -- 2개 자격 항목
+        CTRB_PT_TYPE_CD, DFAB_GRD_CD
+)) as unpivortn
+
+
 -- observation mapping table(temp)
 CREATE TABLE #observation_mapping
     (
@@ -400,7 +424,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
  *************************************/
 /*
 select STND_Y as hchk_year, person_id, jk_type, jk_value into @NHISNSC_rawdata.JK_VERTICAL
-from @NHISNSC_rawdata.NHID_JK
+from @NHISNSC_rawdata.@NHIS_JK
 unpivot (jk_value for jk_type in ( -- 2개 자격 항목
         CTRB_PT_TYPE_CD, DFAB_GRD_CD
 )) as unpivortn
