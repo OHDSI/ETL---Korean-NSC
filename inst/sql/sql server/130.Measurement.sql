@@ -100,6 +100,7 @@ CREATE TABLE #measurement_mapping
 /**************************************																																							   
  1. 행을 열로 전환
 ***************************************/ 
+/*
 select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @NHISNSC_database.GJ_VERTICAL
 from @NHISNSC_rawdata.@NHIS_GJ
 unpivot (meas_value for meas_type in ( -- 47 검진 항목
@@ -115,7 +116,7 @@ unpivot (meas_value for meas_type in ( -- 47 검진 항목
 	mov20_wek_freq_id, mov30_wek_freq_id, wlk30_wek_freq_id
 )) as unpivortn
 ;
-
+*/
 
 /**************************************
  2. 수치형 데이터 입력 
@@ -217,8 +218,10 @@ INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measuremen
 
 /**************************************
  3.source_value의 값을 value_as_number에도 입력
-***************************************/ 
+***************************************/
+/* 
 UPDATE @NHISNSC_database.MEASUREMENT
 SET value_as_number = measurement_source_value
 where measurement_source_value is not null
 ;
+*/

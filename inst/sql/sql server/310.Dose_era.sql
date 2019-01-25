@@ -12,6 +12,7 @@
 /**************************************
  1. dose_era 테이블 생성
 ***************************************/ 
+/*
  CREATE TABLE @NHISNSC_database.DOSE_ERA (
      dose_era_id					INTEGER	 identity(1,1)    NOT NULL , 
      person_id						INTEGER     NOT NULL ,
@@ -21,13 +22,13 @@
      dose_era_start_date			DATE 		NOT	NULL, 
 	 dose_era_end_date				DATE 		NOT	NULL
 );
-
+*/
 
 /**************************************
  2. 1단계: 필요 데이터 조회
 ***************************************/ 
 
---------------------------------------------#cteDrugTarget, 457250250, 00:03:20
+--------------------------------------------#cteDrugTarget
 SELECT
 	d.drug_exposure_id
 	, d.person_id
@@ -45,7 +46,7 @@ FROM @NHISNSC_database.DRUG_EXPOSURE d
 	 AND c.concept_class_ID = 'Ingredient';
 	
 	
---------------------------------------------#cteEndDates, 217802424, 00:13:32
+--------------------------------------------#cteEndDates
 SELECT
 	person_id
 	, ingredient_concept_id
@@ -89,7 +90,7 @@ INTO #cteEndDates FROM
 ) e
 WHERE (2 * e.start_ordinal) - e.overall_ord = 0;
 
---------------------------------------------#cteDoseEraEnds, 457250250, 00:10:55
+--------------------------------------------#cteDoseEraEnds
 SELECT
 	dt.person_id
 	, dt.ingredient_concept_id as drug_concept_id

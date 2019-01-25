@@ -50,12 +50,26 @@ CREATE TABLE @NHISNSC_database.COST (
 );
 */
 /**************************************
+ 1-1. 임시 매핑 테이블 사용
+***************************************/ 
+select a.*, b.invalid_reason as concept_invalid_reason
+into #mapping_table
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
+
+update #mapping_table
+set invalid_reason=REPLACE(invalid_reason, '', NULL)
+, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+
+/**************************************
  2. 데이터 입력
     1) Visit
 	2) Drug
 	3) Procedure
 	4) Device
 ***************************************/ 
+
+
+
 
 ---------------------------------------------------
 -- 1) Visit
@@ -98,16 +112,18 @@ and a.person_id=b.person_id;
 -- 2) Drug
 ---------------------------------------------------
 -- Drug 와 Device 에서 중복되는 키를 확인
-select * from @NHISNSC_database.@source_to_concept_map
+/*
+select * from #mapping_table
 where source_code in (
 					select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 					where a.drug_exposure_id=b.device_exposure_id and a.person_id=b.person_id
 					)
 order by source_code
+*/
 
 -- 해당되는 키들을 Drug 에서 제거
 delete from @NHISNSC_database.DRUG_EXPOSURE
-where drug_source_value in (select source_code from @NHISNSC_database.@source_to_concept_map
+where drug_source_value in (select source_code from #mapping_table
 							where domain_id='drug' and source_code in (
 												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 												where a.drug_exposure_id=b.device_exposure_id 
@@ -116,7 +132,7 @@ where drug_source_value in (select source_code from @NHISNSC_database.@source_to
 								)
 
 --해당되는 키들을 매핑테이블에서 제거								
-delete from @NHISNSC_database.@source_to_concept_map
+delete from #mapping_table
 							where domain_id='drug' and source_code in (
 												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 												where a.drug_exposure_id=b.device_exposure_id 
@@ -326,7 +342,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='procedure' and invalid_reason is null)) a, 
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)) a, 
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
@@ -368,7 +384,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from @NHISNSC_database.@source_to_concept_map where domain_id='procedure' and invalid_reason is null)) a,  
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)) a,  
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
 	@NHISNSC_rawdata.@NHIS_60T n
@@ -377,3 +393,5 @@ from (select device_exposure_id, person_id, device_exposure_start_date
 where left(a.device_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
+
+drop table #mapping_table;

@@ -10,7 +10,7 @@ Data Cleansing
  @NHIS_GJ: GJ table in NHIS NSC
 */
 
-
+/*
 -----Person issue update
 -- person¿¡´Â 2002³â Ãâ»ýÀ¸·Î ³ª¿ÀÁö¸¸ JK table¿¡´Â age_groupÀÌ 1·Î ³ª¿À´Â »ç¶÷µé(Àß¸øºÐ·ùµÈ»ç¶÷µé), 241
 -- 3¹ø, 7¹ø¿¡ ¼ÓÇØ ÀÖÀ½.
@@ -74,3 +74,5 @@ where person_id = 95292839;
 update @NHISNSC_database.PERSON
 set gender_source_value=1
 where person_id=95292839;
+
+*/
