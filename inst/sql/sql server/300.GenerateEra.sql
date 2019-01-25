@@ -42,10 +42,12 @@ OHDSI-SQL File Instructions
 /* SCRIPT PARAMETERS */
 
 	
-	{DEFAULT @TARGET_CDMV5 = '[CDM]' } -- The target CDMv5 database name
-	{DEFAULT @NHISNSC_database = '[CDM].[CDMSCHEMA]' } -- the target CDMv5 database plus schema
+	--{DEFAULT @TARGET_CDMV5 = '[CDM]' } -- The target CDMv5 database name
+	--{DEFAULT @NHISNSC_database = '[CDM].[CDMSCHEMA]' } -- the target CDMv5 database plus schema
 
-USE @TARGET_CDMV5;
+USE @NHISNSC_database;
+
+
 
 /****
 DRUG ERA
@@ -345,17 +347,3 @@ FROM #cteConditionEnds
 GROUP BY person_id
 	,CONDITION_CONCEPT_ID
 	,ERA_END_DATE;
-
-© 2019 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Press h to open a hovercard with more details.
