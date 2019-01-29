@@ -37,13 +37,10 @@ CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE (
 /**************************************
  1-1. 임시 매핑 테이블 사용
 ***************************************/ 
-select a.*, b.invalid_reason as concept_invalid_reason
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
-
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='condition';);
 
 /**************************************
  2. 데이터 입력
@@ -103,21 +100,18 @@ from (
 	and a.seq_no=c.seq_no
 	and b.person_id=d.person_id --추가
 	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --추가
-	(select * from #mapping_table a where domain_id='condition' and invalid_reason is null and concept_invalid_reason is null) as n
+	#mapping_table as n
 where m.sick_sym=n.source_code;
 
 
 /********************************************
 	2-1. 매핑되지않는 건수들은 concept_id 를 0 넣음
 ********************************************/
---예상 : 326254
 INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
 	(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_end_date,
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
 select
-	count(*)
-/*
 	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
 	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
 	m.person_id as person_id,
@@ -130,7 +124,7 @@ select
 	m.key_seq as visit_occurrence_id,
 	m.sick_sym as condition_source_value,
 	null as condition_source_concept_id
-	*/
+
 from (
 	select
 		a.master_seq, a.person_id, a.key_seq, a.seq_no, b.recu_fr_dt,
@@ -158,7 +152,7 @@ from (
 	and a.seq_no=c.seq_no
 	and b.person_id=d.person_id --추가
 	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m --추가
-where m.sick_sym not in (select a.source_code from #mapping_table a where domain_id='condition' and invalid_reason is null and concept_invalid_reason is null);
+where m.sick_sym not in (select source_code from #mapping_table);
 
 
 drop table #mapping_table;

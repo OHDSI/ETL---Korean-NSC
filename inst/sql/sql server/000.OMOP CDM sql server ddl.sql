@@ -124,7 +124,7 @@ CREATE TABLE concept_ancestor (
 )
 ;
 
-
+/*
 CREATE TABLE source_to_concept_map (
   source_code				      VARCHAR(50)		NOT NULL,
   source_concept_id			  INTEGER			  NOT NULL,
@@ -137,7 +137,7 @@ CREATE TABLE source_to_concept_map (
   invalid_reason			    VARCHAR(1)		NULL
 )
 ;
-
+*/
 
 
 
@@ -483,7 +483,7 @@ CREATE TABLE note
   encoding_concept_id		INTEGER			  NOT NULL ,
   language_concept_id		INTEGER			  NOT NULL ,
   provider_id					  INTEGER			  NULL ,
-  visit_occurrence_id		INTEGER			  NULL ,
+  visit_occurrence_id		BIGINT			  NULL ,
   visit_detail_id       BIGINT        NULL ,
   note_source_value			VARCHAR(50)		NULL
 )
@@ -692,10 +692,10 @@ CREATE TABLE cohort_attribute
 
 
 --HINT DISTRIBUTE_ON_KEY(person_id)
+--19.01.29 JMPark, 중복되는 drug_era_id 삭제
 CREATE TABLE drug_era
 (
-  drug_era_id         INTEGER  identity(1,1)    NOT NULL , 
-  drug_era_id					INTEGER			NOT NULL ,
+  drug_era_id					BIGINT		IDENTITY(1,1)	NOT NULL ,
   person_id						BIGINT			NOT NULL ,
   drug_concept_id			INTEGER			NOT NULL ,
   drug_era_start_date	DATE			  NOT NULL ,

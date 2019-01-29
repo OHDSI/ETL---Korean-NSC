@@ -52,13 +52,11 @@ CREATE TABLE @NHISNSC_database.COST (
 /**************************************
  1-1. 임시 매핑 테이블 사용
 ***************************************/ 
-select a.*, b.invalid_reason as concept_invalid_reason
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(invalid_reason, '', NULL) as invalid_reason 
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='';
 
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
 
 /**************************************
  2. 데이터 입력
@@ -67,10 +65,6 @@ set invalid_reason=REPLACE(invalid_reason, '', NULL)
 	3) Procedure
 	4) Device
 ***************************************/ 
-
-
-
-
 ---------------------------------------------------
 -- 1) Visit
 ---------------------------------------------------
@@ -132,11 +126,10 @@ where drug_source_value in (select source_code from #mapping_table
 								)
 
 --해당되는 키들을 매핑테이블에서 제거								
-delete from #mapping_table
-							where domain_id='drug' and source_code in (
+delete from #mapping_table where domain_id='drug' and source_code in (
 												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 												where a.drug_exposure_id=b.device_exposure_id 
-													and a.person_id=b.person_id 
+													and a.person_id=b.person_id )
 
 --데이터 입력
 -- 원본 테이블이 30T인 경우
@@ -342,7 +335,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)) a, 
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a, --procedure 와 device 에 둘다 변환된 건수들 제외
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
@@ -384,7 +377,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)) a,  
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a,  --procedure 와 device 에 둘다 변환된 건수들 제외
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
 	@NHISNSC_rawdata.@NHIS_60T n

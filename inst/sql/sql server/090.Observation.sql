@@ -191,29 +191,7 @@ insert into #observation_mapping (meas_type, id_value, answer, observation_conce
 INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observation_concept_id, observation_date, observation_time, observation_type_concept_id, value_as_number, value_As_string, value_as_concept_id,
 										qualifier_concept_id, unit_concept_id, provider_id, visit_occurrence_id, observation_source_value, observation_source_concept_id, unit_source_value, qualifier_source_value)
 
-	select	case	when a.meas_type = 'HCHK_PMH_CD1' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_PMH_CD2' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_PMH_CD3' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_APOP_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_HDISE_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_HPRTS_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_DIABML_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_HPLPDM_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_ETCDSE_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HCHK_PHSS_PMH_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_LIVER_DISE_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_HPRTS_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_APOP_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_HDISE_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_DIABML_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'FMLY_CANCER_PATIEN_YN' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SMK_STAT_TYPE_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SMK_TERM_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'DSQTY_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'DRNK_HABIT_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'TM1_DRKQTY_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'EXERCI_FREQ_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as observation_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as observation_id,
 			a.person_id as person_id,
 			b.observation_concept_id as observation_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
@@ -263,14 +241,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observation_concept_id, observation_date, observation_time, observation_type_concept_id, value_as_number, value_As_string, value_as_concept_id,
 										qualifier_concept_id, unit_concept_id, provider_id, visit_occurrence_id, observation_source_value, observation_source_concept_id, unit_source_value, qualifier_source_value)
 
-	select	case	when a.meas_type = 'CUR_SMK_TERM_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'CUR_DSQTY_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'PAST_SMK_TERM_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'PAST_DSQTY_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'MOV20_WEK_FREQ_ID' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'MOV30_WEK_FREQ_ID' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'WLK30_WEK_FREQ_ID' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as observation_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as observation_id,
 			a.person_id as person_id,
 			b.observation_concept_id as observation_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
@@ -341,8 +312,7 @@ insert into #observation_mapping09 (meas_type, id_value, answer, observation_con
 INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observation_concept_id, observation_date, observation_time, observation_type_concept_id, value_as_number, value_As_string, value_as_concept_id,
 										qualifier_concept_id, unit_concept_id, provider_id, visit_occurrence_id, observation_source_value, observation_source_concept_id, unit_source_value, qualifier_source_value)
 
-select	case	when a.meas_type = 'TM1_DRKQTY_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-				end as observation_id,
+select		cast(concat(c.master_seq, b.id_value) as bigint) as observation_id,
 			a.person_id as person_id,
 			b.observation_concept_id as observation_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
@@ -385,8 +355,7 @@ select	case	when a.meas_type = 'TM1_DRKQTY_RSPS_CD' then cast(concat(c.master_se
 INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observation_concept_id, observation_date, observation_time, observation_type_concept_id, value_as_number, value_As_string, value_as_concept_id,
 										qualifier_concept_id, unit_concept_id, provider_id, visit_occurrence_id, observation_source_value, observation_source_concept_id, unit_source_value, qualifier_source_value)
 
-	select	case	when a.meas_type = 'DRNK_HABIT_RSPS_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as observation_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as observation_id,
 			a.person_id as person_id,
 			b.observation_concept_id as observation_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as observation_date,
@@ -436,7 +405,7 @@ INSERT INTO @NHISNSC_database.OBSERVATION (observation_id, person_id, observatio
 										qualifier_concept_id, unit_concept_id, provider_id, visit_occurrence_id, observation_source_value, observation_source_concept_id, unit_source_value, qualifier_source_value)
 
 
-select			case when a.jk_type = 'CTRB_PT_TYPE_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
+select			cast(concat(c.master_seq, b.id_value) as bigint)
 				end as observation_id,		
 				a.person_id as person_id,
 				b.observation_concept_id as observation_concept_id,
