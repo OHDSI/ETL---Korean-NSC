@@ -125,23 +125,7 @@ INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measuremen
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
-	select	case	when a.meas_type = 'HEIGHT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'WEIGHT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'WAIST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BP_HIGH' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BP_LWST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BLDS' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'TOT_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'TRIGLYCERIDE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HDL_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'LDL_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HMG' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_PH' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'CREATININE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SGOT_AST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SGPT_ALT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'GAMMA_GTP' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as measurement_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as measurement_id,
 			a.person_id as person_id,
 			b.measurement_concept_id as measurement_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as measurement_date,
@@ -182,10 +166,7 @@ INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measuremen
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
-	select	case	when a.meas_type = 'GLY_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_OCCU_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_PROTE_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as measurement_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as measurement_id,
 			a.person_id as person_id,
 			b.measurement_concept_id as measurement_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as measurement_date,
