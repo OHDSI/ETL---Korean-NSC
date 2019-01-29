@@ -50,13 +50,10 @@ CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE (
 /**************************************
  1-1. 임시 매핑 테이블 사용
 ***************************************/ 
-select a.*, b.invalid_reason as concept_invalid_reason
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
-
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='device';
 
 /**************************************
  2-1. 30T 입력
@@ -90,7 +87,7 @@ FROM
 	FROM @NHISNSC_rawdata.@NHIS_30T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a JOIN (select * from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null) b 
+	AND x.seq_no=y.seq_no) a JOIN #mapping_table b 
 ON a.div_cd=b.source_code
 ;
 
@@ -126,14 +123,13 @@ FROM
 	FROM @NHISNSC_rawdata.@NHIS_60T x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a JOIN (select * from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null) b 
+	AND x.seq_no=y.seq_no) a JOIN #mapping_table b 
 	on a.div_cd=b.source_code
 ;
 
 /**************************************
  2-3. 매핑테이블과 조인되지 않는 30T 입력
 ***************************************/
---565,594,700
 insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
@@ -165,13 +161,12 @@ FROM
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
-where a.div_cd not in (select source_code from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null);
+where a.div_cd not in (select source_code from #mapping_table );
 
 
 /**************************************
  2-4. 매핑테이블과 조인되지 않는 60T 입력
 ***************************************/  
---396,777,827
 insert into @NHISNSC_rawdata.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
@@ -203,7 +198,7 @@ FROM
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
-where a.div_cd not in (select source_code from #mapping_table where domain_id='device' and invalid_reason is null and concept_invalid_reason is null)
+where a.div_cd not in (select source_code from #mapping_table )
 ;
 
 drop table #mapping_table;

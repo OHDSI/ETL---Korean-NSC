@@ -97,13 +97,10 @@ CREATE TABLE @NHISNSC_database.PROCEDURE_OCCURRENCE (
 /**************************************
  2-1. 임시 매핑 테이블 사용
 ***************************************/ 
-select a.*, b.invalid_reason as concept_invalid_reason
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
-
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='procedure';
 
 
 /**************************************
@@ -134,9 +131,9 @@ FROM (SELECt x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd,
 	FROM @NHISNSC_rawdata.@NHIS_30T x, 
 		 (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='130') y
 	WHERE x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a, (select * from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null) b
+	AND x.seq_no=y.seq_no) a, #mapping_table b
 WHERE left(a.div_cd,5)=b.source_code
-
+;
 
 /**************************************
  3-2. 60T를 이용하여 데이터 입력
@@ -166,9 +163,9 @@ FROM (SELECt x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd,
 	FROM @NHISNSC_rawdata.@NHIS_60T x, 
 		 (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') y
 	WHERE x.key_seq=y.key_seq
-	AND x.seq_no=y.seq_no) a, (select * from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null) b
+	AND x.seq_no=y.seq_no) a, #mapping_table b
 WHERE left(a.div_cd,5)=b.source_code
-
+;
 
 /**************************************
  3-3. 매핑테이블과 조인되지 않는 30T 데이터 입력
@@ -199,8 +196,8 @@ FROM (SELECt x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd,
 		 (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='130') y
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a 
-WHERE left(a.div_cd,5) not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)
-
+WHERE left(a.div_cd,5) not in (select source_code from #mapping_table )
+;
 
 /**************************************
  3-4. 매핑테이블과 조인되지 않는 60T 데이터 입력
@@ -231,7 +228,7 @@ FROM (SELECt x.key_seq, x.seq_no, x.recu_fr_dt, x.div_cd,
 		 (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') y
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a 
-WHERE left(a.div_cd,5) not in (select source_code from #mapping_table where domain_id='procedure' and invalid_reason is null and concept_invalid_reason is null)
-
+WHERE left(a.div_cd,5) not in (select source_code from #mapping_table)
+;
 
 drop table #mapping_table;

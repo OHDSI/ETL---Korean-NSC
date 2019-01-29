@@ -214,13 +214,10 @@ CREATE TABLE @NHISNSC_database.DRUG_EXPOSURE (
 /**************************************
  2-1. 임시 매핑 테이블 사용
 ***************************************/ 
-select a.*, b.invalid_reason as concept_invalid_reason
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id;
-
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='drug';
 
 
 /**************************************
@@ -272,13 +269,13 @@ FROM
 			case when x.item_cd is not null and len(x.item_cd) = 1 and isnumeric(x.item_cd)=1 and convert(int, x.item_cd) between 1 and 9 then '0' + x.item_cd else x.item_cd end as item_cd,
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_30T x, 
-	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='130') y
 		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
 	and y.person_id=z.PERSON_ID	) a,
-	(select * from #mapping_table where domain_id='Drug' and invalid_reason is null and concept_invalid_reason is null) b
+	#mapping_table  b
 where a.div_cd=b.source_code
 ;
 
@@ -322,13 +319,13 @@ FROM
 			case when x.dd_exec_freq is not null and isnumeric(x.dd_exec_freq)=1 and cast(x.dd_exec_freq as float) > '0' then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_60T x, 
-	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='160') y
 	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
 	and y.person_id=z.PERSON_ID	) a,
-	(select * from #mapping_table where domain_id='Drug' and invalid_reason is null and concept_invalid_reason is null) b
+	#mapping_table b
 where a.div_cd=b.source_code
 ;
 
@@ -381,13 +378,13 @@ FROM
 			case when x.item_cd is not null and len(x.item_cd) = 1 and isnumeric(x.item_cd)=1 and convert(int, x.item_cd) between 1 and 9 then '0' + x.item_cd else x.item_cd end as item_cd,
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_30T x, 
-	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='130') y
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='130') y
 		, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
 	and y.person_id=z.PERSON_ID	) a
-where a.div_cd not in (select source_code from #mapping_table where domain_id='Drug' and invalid_reason is null and concept_invalid_reason is null)
+where a.div_cd not in (select source_code from #mapping_table )
 ;
 
 /**************************************
@@ -430,13 +427,13 @@ FROM
 			case when x.dd_exec_freq is not null and isnumeric(x.dd_exec_freq)=1 and cast(x.dd_exec_freq as float) > '0' then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			y.master_seq, y.person_id			
 	FROM @NHISNSC_rawdata.@NHIS_60T x, 
-	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_Table='160') y
+	     (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='160') y
 	, (select form_cd, KEY_SEQ, PERSON_ID from @NHISNSC_rawdata.@NHIS_20T) z
 	WHERE x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no
 	and y.key_seq=z.KEY_SEQ
 	and y.person_id=z.PERSON_ID	) a
-where a.div_cd not in (select source_code from #mapping_table where domain_id='Drug' and invalid_reason is null and concept_invalid_reason is null)
+where a.div_cd not in (select source_code from #mapping_table )
 ;
 
 drop table #mapping_table;
