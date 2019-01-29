@@ -59,7 +59,7 @@ DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 4000000000);
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '140', b.person_id, a.key_seq, a.seq_no
-FROM @NHISNSC_rawdata.@NHIS_40T a, @NHISNSC_rawdata.@NHIS_40T b
+FROM @NHISNSC_rawdata.@NHIS_40T a, @NHISNSC_rawdata.@NHIS_20T b
 WHERE a.key_seq=b.key_seq
 ;
 
