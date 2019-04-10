@@ -1,6 +1,6 @@
 /**************************************
  --encoding : UTF-8
- --Author: 조재형
+ --Author: JH Cho
  --Date: 2018.09.15
  
  @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
@@ -16,15 +16,15 @@
  @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
  @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: PAYER_PLAN_PERIOD 테이블 생성
-			   1) payer_plan_period_id = person_id+연도 4자로 정의
-			   2) payer_plan_period_start_date = 당해 01월 01일로 정의
-			   3) payer_plan_period_end_date = 당해 12월 31일 혹은 death date로 정의
+ --Description: Create PAYER_PLAN_PERIOD table
+			   1) payer_plan_period_id = Define person_id as person_id + year
+			   2) payer_plan_period_start_date = Define as the 01 Jan of the year 
+			   3) payer_plan_period_end_date = Define as the 31 Dec of the year or the death date
  --Generating Table: PAYER_PLAN_PERIOD
 ***************************************/
 
 /**************************************
- 1. 테이블 생성 
+ 1. Create table
 ***************************************/ 
 /*
 CREATE TABLE @NHISNSC_database.PAYER_PLAN_PERIOD
@@ -41,10 +41,10 @@ CREATE TABLE @NHISNSC_database.PAYER_PLAN_PERIOD
 */ 
  
 /**************************************
- 2. 데이터 입력 및 확인
+ 2. Insert data 
 ***************************************/  
 
-INSERT INTO @NHISNSC_databse.PAYER_PLAN_PERIOD (payer_plan_period_id, person_id, payer_plan_period_start_date, payer_plan_period_end_date, payer_source_value, plan_source_value, family_source_value)
+INSERT INTO @NHISNSC_database.PAYER_PLAN_PERIOD (payer_plan_period_id, person_id, payer_plan_period_start_date, payer_plan_period_end_date, payer_source_value, plan_source_value, family_source_value)
 	SELECT	a.person_id+STND_Y as payer_plan_period_id,
 			a.person_id as person_id,
 			cast(convert(VARCHAR, STND_Y + '0101' ,23) as date) as payer_plan_period_start_date,

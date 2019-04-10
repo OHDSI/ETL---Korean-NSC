@@ -1,0 +1,162 @@
+﻿/**************************************
+ 1. preparation
+***************************************/ 
+/*
+-- 1) 30T의 항/목 코드 현황 체크매핑
+select clause_cd, item_cd, count(clause_cd)
+from @NHISNSC_rawdata.@NHIS_30T
+group by clause_cd, item_cd
+--> 결과는 "08. 참고) 30T, 60T의 코드 분석.xlsx" 참고
+
+
+-- 2) 30T의 계산식에 들어갈 숫자 데이터 정합성 체크
+-- 1일 투여량 또는 실시 횟수
+select dd_mqty_exec_freq, count(dd_mqty_exec_freq) as cnt
+from @NHISNSC_rawdata.@NHIS_30T
+where dd_mqty_exec_freq is not null and ISNUMERIC(dd_mqty_exec_freq) = 0
+group by dd_mqty_exec_freq
+
+
+-- 총투여일수 또는 실시횟수
+select mdcn_exec_freq, count(mdcn_exec_freq) as cnt
+from @NHISNSC_rawdata.@NHIS_30T
+where mdcn_exec_freq is not null and ISNUMERIC(mdcn_exec_freq) = 0
+group by mdcn_exec_freq
+
+
+-- 1회 투약량
+select dd_mqty_freq, count(dd_mqty_freq) as cnt
+from @NHISNSC_rawdata.@NHIS_30T
+where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
+group by dd_mqty_freq
+--> 결과는 "08. 참고) 30T, 60T의 코드 분석.xlsx" 참고
+
+
+-- 3) 60T의 계산식에 들어갈 숫자 데이터 정합성 체크
+-- 1회 투약량
+select dd_mqty_freq, count(dd_mqty_freq) as cnt
+from @NHISNSC_rawdata.@@NHIS_60T
+where dd_mqty_freq is not null and ISNUMERIC(dd_mqty_freq) = 0
+group by dd_mqty_freq
+
+-- 1일 투약량
+select dd_exec_freq, count(dd_exec_freq) as cnt
+from @NHISNSC_rawdata.@@NHIS_60T
+where dd_exec_freq is not null and ISNUMERIC(dd_exec_freq) = 0
+group by dd_exec_freq
+
+-- 총투여일수 또는 실시횟수
+select mdcn_exec_freq, count(mdcn_exec_freq) as cnt
+from @NHISNSC_rawdata.@@NHIS_60T
+where mdcn_exec_freq is not null and ISNUMERIC(mdcn_exec_freq) = 0
+group by mdcn_exec_freq
+--> 결과는 "08. 참고) 30T, 60T의 코드 분석.xlsx" 참고
+
+
+-- 4) 매핑 테이블의 약코드 1:N 건수 체크
+select source_code, count(source_code)
+from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+group by source_code
+having count(source_code)>1
+--> 1:N 매핑 약코드 없음
+
+
+--몇 건이나 늘어날지 예측
+--30T
+select count(*) from @NHISNSC_rawdata.@NHIS_30T
+where div_cd in (select source_code
+				from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				group by source_code
+				having count(source_code)>1)
+--60T
+select count(*) from @NHISNSC_rawdata.@@NHIS_60T
+where div_cd in (select source_code
+				from   (select source_code from @NHISNSC_database.source_to_concept_map where domain_id='Drug' and invalid_reason is null) a
+				group by source_code
+				having count(source_code)>1)
+
+--비맵핑건수 파악
+--30T
+select count(*) from @NHISNSC_rawdata.@NHIS_30T
+where DIV_CD not in (
+select DIV_CD from @NHISNSC_rawdata.@@NHIS_30Ta, (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+where a.DIV_CD=b.source_code
+)
+
+--60T
+select count(*) from @NHISNSC_rawdata.@@NHIS_60T
+where DIV_CD not in (
+select DIV_CD from @NHISNSC_rawdata.@@NHIS_60T a, (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug' and invalid_reason is null) b
+where a.DIV_CD=b.source_code
+)
+
+
+-- 5) 변환 예상 건수 파악
+--30T의 변환예상 건수
+select count(a.key_seq)
+from @NHISNSC_rawdata.@@NHIS_30Ta, 
+	(select source_code
+	from @NHISNSC_database.source_to_concept_map
+	where domain_id='drug' and invalid_reason is null ) as b, 
+	@NHISNSC_rawdata.NHID_GY20_T1 c
+where a.div_cd=b.source_code
+and a.key_seq=c.key_seq
+
+--60T의 변환예상 건수
+select count(a.key_seq)
+from @NHISNSC_rawdata.@@NHIS_60T a, 
+	(select source_code
+	from @NHISNSC_database.source_to_concept_map 
+	where domain_id='drug' and invalid_reason is null) b, 
+	@NHISNSC_rawdata.NHID_GY20_T1 c
+where a.div_cd=b.source_code
+and a.key_seq=c.key_seq
+
+*/
+
+/**************************************
+ 1.1. drug_exposure_end_date 계산 방법을 정하기 위해 실행한 쿼리들 (2017.02.17 by 유승찬)
+***************************************/ 
+-- observation period 범위 밖의 건수
+/*
+
+select a.person_id, a.drug_exposure_id, a.drug_exposure_start_date, a.drug_exposure_end_date, b.observation_period_start_date, b.observation_period_end_date, c.death_date
+from @NHISNSC_database.drug_exposure a, @NHISNSC_database.observation_period b, @NHISNSC_database.DEATH C
+where a.person_id=b.person_id
+and a.person_id = c.person_id
+and (a.drug_exposure_start_date < b.observation_period_start_date
+or a.drug_exposure_end_date > b.observation_period_end_date)
+
+select b.concept_name, x.*
+from 
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@@NHIS_30TAS A
+join( select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
+on A.div_cd=b.source_code 
+   where cast(DD_MQTY_EXEC_FREQ as float)<1
+   and cast(DD_MQTY_EXEC_FREQ as float)>=0) x
+   join @NHISNSC_database.concept b
+   on x.target_concept_id= b.concept_id
+
+select b.concept_name, x.*
+from 
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@@NHIS_30TAS A
+join (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
+on A.div_cd=b.source_code 
+   where cast(DD_MQTY_EXEC_FREQ as float)>1) x
+   join @NHISNSC_database.CONCEPT b
+   on x.target_concept_id= b.concept_id
+
+
+select b.concept_name, x.*
+from 
+(select A.*, B.target_concept_id
+from @NHISNSC_rawdata.@@NHIS_60T AS A
+join (select * from @NHISNSC_database.source_to_concept_map where domain_id='drug') as B
+on A.div_cd=b.source_code 
+   where cast(DD_MQTY_FREQ as float)>1) x
+   join @NHISNSC_database.concept b
+   on x.target_concept_id= b.concept_id
+
+ */

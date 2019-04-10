@@ -55,6 +55,7 @@ Standardized vocabulary
 
 ************************/
 
+use @Mapping_database
 
 ALTER TABLE concept ADD CONSTRAINT fpk_concept_domain FOREIGN KEY (domain_id)  REFERENCES domain (domain_id);
 
@@ -119,13 +120,13 @@ Standardized meta-data
 
 
 
-
-
 /************************
 
 Standardized clinical data
 
 ************************/
+
+Use @NHISNSC_database
 
 ALTER TABLE person ADD CONSTRAINT fpk_person_gender_concept FOREIGN KEY (gender_concept_id)  REFERENCES concept (concept_id);
 
@@ -421,5 +422,7 @@ Unique constraints
 *************************
 *************************
 ************************/
+
+Use @Mapping_database
 
 ALTER TABLE concept_synonym ADD CONSTRAINT uq_concept_synonym UNIQUE (concept_id, concept_synonym_name, language_concept_id);

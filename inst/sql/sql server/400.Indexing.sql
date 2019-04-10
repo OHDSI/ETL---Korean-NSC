@@ -1,13 +1,13 @@
 /*********************************************************************************
 # Copyright 2014 Observational Health Data Sciences and Informatics
 #
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,66 +17,78 @@
 
 /************************
 
- ####### #     # ####### ######      #####  ######  #     #           #######    ###                                           
- #     # ##   ## #     # #     #    #     # #     # ##   ##    #    # #           #  #    # #####  ###### #    # ######  ####  
- #     # # # # # #     # #     #    #       #     # # # # #    #    # #           #  ##   # #    # #       #  #  #      #      
- #     # #  #  # #     # ######     #       #     # #  #  #    #    # ######      #  # #  # #    # #####    ##   #####   ####  
- #     # #     # #     # #          #       #     # #     #    #    #       #     #  #  # # #    # #        ##   #           # 
- #     # #     # #     # #          #     # #     # #     #     #  #  #     #     #  #   ## #    # #       #  #  #      #    # 
- ####### #     # ####### #           #####  ######  #     #      ##    #####     ### #    # #####  ###### #    # ######  ####  
-                                                                              
+ ####### #     # ####### ######      #####  ######  #     #           #######      #####     ###
+ #     # ##   ## #     # #     #    #     # #     # ##   ##    #    # #           #     #     #  #    # #####  ###### #    # ######  ####
+ #     # # # # # #     # #     #    #       #     # # # # #    #    # #                 #     #  ##   # #    # #       #  #  #      #
+ #     # #  #  # #     # ######     #       #     # #  #  #    #    # ######       #####      #  # #  # #    # #####    ##   #####   ####
+ #     # #     # #     # #          #       #     # #     #    #    #       # ###       #     #  #  # # #    # #        ##   #           #
+ #     # #     # #     # #          #     # #     # #     #     #  #  #     # ### #     #     #  #   ## #    # #       #  #  #      #    #
+ ####### #     # ####### #           #####  ######  #     #      ##    #####  ###  #####     ### #    # #####  ###### #    # ######  ####
 
-script to create the required indexes within OMOP common data model, version 5.0 for SQL Server database
 
-last revised: 12 Oct 2014
+sql server script to create the required indexes within OMOP common data model, version 5.3
 
-author:  Patrick Ryan
+last revised: 14-November-2017
 
-description:  These indices are considered a minimal requirement to ensure adequate performance of analyses.
+author:  Patrick Ryan, Clair Blacketer
+
+description:  These primary keys and indices are considered a minimal requirement to ensure adequate performance of analyses.
 
 *************************/
 
-/*Modified for Korean OHDSI from Patrick Ryan
-last revised: 03 Nov 2016
-author:  jung hyun byun
-*/
 
-/****************************************************************************************************************************************
-*****************************************************	Cluster Index  ******************************************************************
-*****************************************************************************************************************************************
- **********************************/
+/************************
+*************************
+*************************
+*************************
+
+Primary key constraints
+
+*************************
+*************************
+*************************
+************************/
+
+
 
 /************************
 
 Standardized vocabulary
 
 ************************/
+/**
+Use @Mapping_database
 
-CREATE UNIQUE CLUSTERED INDEX idx_concept_concept_id ON @ResultDatabaseSchema.concept (concept_id ASC);
-CREATE INDEX idx_concept_code ON @ResultDatabaseSchema.concept (concept_code ASC);
-CREATE INDEX idx_concept_vocabluary_id ON @ResultDatabaseSchema.concept (vocabulary_id ASC);
-CREATE INDEX idx_concept_domain_id ON @ResultDatabaseSchema.concept (domain_id ASC);
-CREATE INDEX idx_concept_class_id ON @ResultDatabaseSchema.concept (concept_class_id ASC);
+ALTER TABLE concept ADD CONSTRAINT xpk_concept PRIMARY KEY NONCLUSTERED (concept_id);
+
+ALTER TABLE vocabulary ADD CONSTRAINT xpk_vocabulary PRIMARY KEY NONCLUSTERED (vocabulary_id);
+
+ALTER TABLE domain ADD CONSTRAINT xpk_domain PRIMARY KEY NONCLUSTERED (domain_id);
+
+ALTER TABLE concept_class ADD CONSTRAINT xpk_concept_class PRIMARY KEY NONCLUSTERED (concept_class_id);
+
+ALTER TABLE concept_relationship ADD CONSTRAINT xpk_concept_relationship PRIMARY KEY NONCLUSTERED (concept_id_1,concept_id_2,relationship_id);
+
+ALTER TABLE relationship ADD CONSTRAINT xpk_relationship PRIMARY KEY NONCLUSTERED (relationship_id);
+
+ALTER TABLE concept_ancestor ADD CONSTRAINT xpk_concept_ancestor PRIMARY KEY NONCLUSTERED (ancestor_concept_id,descendant_concept_id);
+
+ALTER TABLE source_to_concept_map ADD CONSTRAINT xpk_source_to_concept_map PRIMARY KEY NONCLUSTERED (source_vocabulary_id,target_concept_id,source_code,valid_end_date);
+
+ALTER TABLE drug_strength ADD CONSTRAINT xpk_drug_strength PRIMARY KEY NONCLUSTERED (drug_concept_id, ingredient_concept_id);
+
+ALTER TABLE cohort_definition ADD CONSTRAINT xpk_cohort_definition PRIMARY KEY NONCLUSTERED (cohort_definition_id);
+
+ALTER TABLE attribute_definition ADD CONSTRAINT xpk_attribute_definition PRIMARY KEY NONCLUSTERED (attribute_definition_id);
+**/
+
+/**************************
+
+Standardized meta-data
+
+***************************/
 
 
-CREATE UNIQUE CLUSTERED INDEX idx_vocabulary_vocabulary_id ON @ResultDatabaseSchema.vocabulary (vocabulary_id ASC);
---CREATE UNIQUE CLUSTERED INDEX idx_domain_domain_id ON domain (domain_id ASC);
-CREATE UNIQUE CLUSTERED INDEX idx_concept_class_class_id ON @ResultDatabaseSchema.concept_class (concept_class_id ASC);
-CREATE INDEX idx_concept_relationship_id_1 ON @ResultDatabaseSchema.concept_relationship (concept_id_1 ASC); 
-CREATE INDEX idx_concept_relationship_id_2 ON @ResultDatabaseSchema.concept_relationship (concept_id_2 ASC); 
-CREATE INDEX idx_concept_relationship_id_3 ON @ResultDatabaseSchema.concept_relationship (relationship_id ASC); 
-CREATE UNIQUE CLUSTERED INDEX idx_relationship_rel_id ON @ResultDatabaseSchema.relationship (relationship_id ASC);
-CREATE CLUSTERED INDEX idx_concept_synonym_id ON @ResultDatabaseSchema.concept_synonym (concept_id ASC);
-CREATE CLUSTERED INDEX idx_concept_ancestor_id_1 ON @ResultDatabaseSchema.concept_ancestor (ancestor_concept_id ASC);
-CREATE INDEX idx_concept_ancestor_id_2 ON @ResultDatabaseSchema.concept_ancestor (descendant_concept_id ASC);
---CREATE CLUSTERED INDEX idx_source_to_concept_map_id_3 ON source_to_concept_map (target_concept_id ASC);
---CREATE INDEX idx_source_to_concept_map_id_1 ON source_to_concept_map (source_vocabulary_id ASC);
---CREATE INDEX idx_source_to_concept_map_id_2 ON source_to_concept_map (target_vocabulary_id ASC);
---CREATE INDEX idx_source_to_concept_map_code ON source_to_concept_map (source_code ASC);
-CREATE CLUSTERED INDEX idx_drug_strength_id_1 ON @ResultDatabaseSchema.drug_strength (drug_concept_id ASC);
-CREATE INDEX idx_drug_strength_id_2 ON @ResultDatabaseSchema.drug_strength (ingredient_concept_id ASC);
---CREATE CLUSTERED INDEX idx_cohort_definition_id ON cohort_definition (cohort_definition_id ASC);
---CREATE CLUSTERED INDEX idx_attribute_definition_id ON attribute_definition (attribute_definition_id ASC);
 
 /************************
 
@@ -84,61 +96,53 @@ Standardized clinical data
 
 ************************/
 
-CREATE UNIQUE CLUSTERED INDEX idx_person_id ON @ResultDatabaseSchema.person (person_id ASC);
+Use @NHISNSC_database
 
-CREATE CLUSTERED INDEX idx_observation_period_id ON @ResultDatabaseSchema.observation_period (person_id ASC);
+/**PRIMARY KEY NONCLUSTERED constraints**/
 
-CREATE CLUSTERED INDEX idx_specimen_person_id ON @ResultDatabaseSchema.specimen (person_id ASC);
+ALTER TABLE person ADD CONSTRAINT xpk_person PRIMARY KEY NONCLUSTERED ( person_id ) ;
 
-CREATE INDEX idx_specimen_concept_id ON @ResultDatabaseSchema.specimen (specimen_concept_id ASC);
+ALTER TABLE observation_period ADD CONSTRAINT xpk_observation_period PRIMARY KEY NONCLUSTERED ( observation_period_id ) ;
 
-CREATE CLUSTERED INDEX idx_death_person_id ON @ResultDatabaseSchema.death (person_id ASC);
+ALTER TABLE specimen ADD CONSTRAINT xpk_specimen PRIMARY KEY NONCLUSTERED ( specimen_id ) ;
 
-CREATE CLUSTERED INDEX idx_visit_person_id ON @ResultDatabaseSchema.visit_occurrence (person_id ASC);
+ALTER TABLE death ADD CONSTRAINT xpk_death PRIMARY KEY NONCLUSTERED ( person_id ) ;
 
-CREATE INDEX idx_visit_concept_id ON @ResultDatabaseSchema.visit_occurrence (visit_concept_id ASC);
+ALTER TABLE visit_occurrence ADD CONSTRAINT xpk_visit_occurrence PRIMARY KEY NONCLUSTERED ( visit_occurrence_id ) ;
 
-CREATE CLUSTERED INDEX idx_procedure_person_id ON @ResultDatabaseSchema.procedure_occurrence (person_id ASC);
+ALTER TABLE visit_detail ADD CONSTRAINT xpk_visit_detail PRIMARY KEY NONCLUSTERED ( visit_detail_id ) ;
 
-CREATE INDEX idx_procedure_concept_id ON @ResultDatabaseSchema.procedure_occurrence (procedure_concept_id ASC);
+ALTER TABLE procedure_occurrence ADD CONSTRAINT xpk_procedure_occurrence PRIMARY KEY NONCLUSTERED ( procedure_occurrence_id ) ;
 
-CREATE INDEX idx_procedure_visit_id ON @ResultDatabaseSchema.procedure_occurrence (visit_occurrence_id ASC);
+ALTER TABLE drug_exposure ADD CONSTRAINT xpk_drug_exposure PRIMARY KEY NONCLUSTERED ( drug_exposure_id ) ;
 
-CREATE CLUSTERED INDEX idx_drug_person_id ON @ResultDatabaseSchema.drug_exposure (person_id ASC);
+ALTER TABLE device_exposure ADD CONSTRAINT xpk_device_exposure PRIMARY KEY NONCLUSTERED ( device_exposure_id ) ;
 
-CREATE INDEX idx_drug_concept_id ON @ResultDatabaseSchema.drug_exposure (drug_concept_id ASC);
+ALTER TABLE condition_occurrence ADD CONSTRAINT xpk_condition_occurrence PRIMARY KEY NONCLUSTERED ( condition_occurrence_id ) ;
 
-CREATE INDEX idx_drug_visit_id ON @ResultDatabaseSchema.drug_exposure (visit_occurrence_id ASC);
+ALTER TABLE measurement ADD CONSTRAINT xpk_measurement PRIMARY KEY NONCLUSTERED ( measurement_id ) ;
 
-CREATE CLUSTERED INDEX idx_device_person_id ON @ResultDatabaseSchema.device_exposure (person_id ASC);
+ALTER TABLE note ADD CONSTRAINT xpk_note PRIMARY KEY NONCLUSTERED ( note_id ) ;
 
-CREATE INDEX idx_device_concept_id ON @ResultDatabaseSchema.device_exposure (device_concept_id ASC);
+ALTER TABLE note_nlp ADD CONSTRAINT xpk_note_nlp PRIMARY KEY NONCLUSTERED ( note_nlp_id ) ;
 
-CREATE INDEX idx_device_visit_id ON @ResultDatabaseSchema.device_exposure (visit_occurrence_id ASC);
+ALTER TABLE observation  ADD CONSTRAINT xpk_observation PRIMARY KEY NONCLUSTERED ( observation_id ) ;
 
-CREATE CLUSTERED INDEX idx_condition_person_id ON @ResultDatabaseSchema.condition_occurrence (person_id ASC);
 
-CREATE INDEX idx_condition_concept_id ON @ResultDatabaseSchema.condition_occurrence (condition_concept_id ASC);
 
-CREATE INDEX idx_condition_visit_id ON @ResultDatabaseSchema.condition_occurrence (visit_occurrence_id ASC);
 
-CREATE CLUSTERED INDEX idx_measurement_person_id ON @ResultDatabaseSchema.measurement (person_id ASC);
+/************************
 
-CREATE INDEX idx_measurement_concept_id ON @ResultDatabaseSchema.measurement (measurement_concept_id ASC);
+Standardized health system data
 
-CREATE INDEX idx_measurement_visit_id ON @ResultDatabaseSchema.measurement (visit_occurrence_id ASC);
+************************/
 
-CREATE CLUSTERED INDEX idx_note_person_id ON @ResultDatabaseSchema.note (person_id ASC);
 
-CREATE INDEX idx_note_concept_id ON @ResultDatabaseSchema.note (note_type_concept_id ASC);
+ALTER TABLE location ADD CONSTRAINT xpk_location PRIMARY KEY NONCLUSTERED ( location_id ) ;
 
-CREATE INDEX idx_note_visit_id ON @ResultDatabaseSchema.note (visit_occurrence_id ASC);
+ALTER TABLE care_site ADD CONSTRAINT xpk_care_site PRIMARY KEY NONCLUSTERED ( care_site_id ) ;
 
-CREATE CLUSTERED INDEX idx_observation_person_id ON @ResultDatabaseSchema.observation (person_id ASC);
-
-CREATE INDEX idx_observation_concept_id ON @ResultDatabaseSchema.observation (observation_concept_id ASC);
-
-CREATE INDEX idx_observation_visit_id ON @ResultDatabaseSchema.observation (visit_occurrence_id ASC);
+ALTER TABLE provider ADD CONSTRAINT xpk_provider PRIMARY KEY NONCLUSTERED ( provider_id ) ;
 
 
 
@@ -148,7 +152,179 @@ Standardized health economics
 
 ************************/
 
-CREATE CLUSTERED INDEX idx_period_person_id ON @ResultDatabaseSchema.payer_plan_period (person_id ASC);
+
+ALTER TABLE payer_plan_period ADD CONSTRAINT xpk_payer_plan_period PRIMARY KEY NONCLUSTERED ( payer_plan_period_id ) ;
+
+ALTER TABLE cost ADD CONSTRAINT xpk_visit_cost PRIMARY KEY NONCLUSTERED ( cost_id ) ;
+
+
+/************************
+
+Standardized derived elements
+
+************************/
+Use @Mapping_database
+
+ALTER TABLE cohort ADD CONSTRAINT xpk_cohort PRIMARY KEY NONCLUSTERED ( cohort_definition_id, subject_id, cohort_start_date, cohort_end_date  ) ;
+
+ALTER TABLE cohort_attribute ADD CONSTRAINT xpk_cohort_attribute PRIMARY KEY NONCLUSTERED ( cohort_definition_id, subject_id, cohort_start_date, cohort_end_date, attribute_definition_id ) ;
+
+Use @NHISNSC_database
+
+ALTER TABLE drug_era ADD CONSTRAINT xpk_drug_era PRIMARY KEY NONCLUSTERED ( drug_era_id ) ;
+
+ALTER TABLE dose_era  ADD CONSTRAINT xpk_dose_era PRIMARY KEY NONCLUSTERED ( dose_era_id ) ;
+
+ALTER TABLE condition_era ADD CONSTRAINT xpk_condition_era PRIMARY KEY NONCLUSTERED ( condition_era_id ) ;
+
+
+/************************
+*************************
+*************************
+*************************
+
+Indices
+
+*************************
+*************************
+*************************
+************************/
+
+/************************
+
+Standardized vocabulary
+
+************************/
+
+Use @Mapping_database
+
+CREATE UNIQUE CLUSTERED INDEX idx_concept_concept_id ON concept (concept_id ASC);
+CREATE INDEX idx_concept_code ON concept (concept_code ASC);
+CREATE INDEX idx_concept_vocabluary_id ON concept (vocabulary_id ASC);
+CREATE INDEX idx_concept_domain_id ON concept (domain_id ASC);
+CREATE INDEX idx_concept_class_id ON concept (concept_class_id ASC);
+
+CREATE UNIQUE CLUSTERED INDEX idx_vocabulary_vocabulary_id ON vocabulary (vocabulary_id ASC);
+
+CREATE UNIQUE CLUSTERED INDEX idx_domain_domain_id ON domain (domain_id ASC);
+
+CREATE UNIQUE CLUSTERED INDEX idx_concept_class_class_id ON concept_class (concept_class_id ASC);
+
+CREATE INDEX idx_concept_relationship_id_1 ON concept_relationship (concept_id_1 ASC);
+CREATE INDEX idx_concept_relationship_id_2 ON concept_relationship (concept_id_2 ASC);
+CREATE INDEX idx_concept_relationship_id_3 ON concept_relationship (relationship_id ASC);
+
+CREATE UNIQUE CLUSTERED INDEX idx_relationship_rel_id ON relationship (relationship_id ASC);
+
+CREATE CLUSTERED INDEX idx_concept_synonym_id ON concept_synonym (concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_concept_ancestor_id_1 ON concept_ancestor (ancestor_concept_id ASC);
+CREATE INDEX idx_concept_ancestor_id_2 ON concept_ancestor (descendant_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_source_to_concept_map_id_3 ON source_to_concept_map (target_concept_id ASC);
+CREATE INDEX idx_source_to_concept_map_id_1 ON source_to_concept_map (source_vocabulary_id ASC);
+CREATE INDEX idx_source_to_concept_map_id_2 ON source_to_concept_map (target_vocabulary_id ASC);
+CREATE INDEX idx_source_to_concept_map_code ON source_to_concept_map (source_code ASC);
+
+CREATE CLUSTERED INDEX idx_drug_strength_id_1 ON drug_strength (drug_concept_id ASC);
+CREATE INDEX idx_drug_strength_id_2 ON drug_strength (ingredient_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_cohort_definition_id ON cohort_definition (cohort_definition_id ASC);
+
+CREATE CLUSTERED INDEX idx_attribute_definition_id ON attribute_definition (attribute_definition_id ASC);
+
+
+/**************************
+
+Standardized meta-data
+
+***************************/
+
+
+
+
+
+/************************
+
+Standardized clinical data
+
+************************/
+
+Use @NHISNSC_database
+
+CREATE UNIQUE CLUSTERED INDEX idx_person_id ON person (person_id ASC);
+
+CREATE CLUSTERED INDEX idx_observation_period_id ON observation_period (person_id ASC);
+
+CREATE CLUSTERED INDEX idx_specimen_person_id ON specimen (person_id ASC);
+CREATE INDEX idx_specimen_concept_id ON specimen (specimen_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_death_person_id ON death (person_id ASC);
+
+CREATE CLUSTERED INDEX idx_visit_person_id ON visit_occurrence (person_id ASC);
+CREATE INDEX idx_visit_concept_id ON visit_occurrence (visit_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_visit_detail_person_id ON visit_detail (person_id ASC);
+CREATE INDEX idx_visit_detail_concept_id ON visit_detail (visit_detail_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_procedure_person_id ON procedure_occurrence (person_id ASC);
+CREATE INDEX idx_procedure_concept_id ON procedure_occurrence (procedure_concept_id ASC);
+CREATE INDEX idx_procedure_visit_id ON procedure_occurrence (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_drug_person_id ON drug_exposure (person_id ASC);
+CREATE INDEX idx_drug_concept_id ON drug_exposure (drug_concept_id ASC);
+CREATE INDEX idx_drug_visit_id ON drug_exposure (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_device_person_id ON device_exposure (person_id ASC);
+CREATE INDEX idx_device_concept_id ON device_exposure (device_concept_id ASC);
+CREATE INDEX idx_device_visit_id ON device_exposure (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_condition_person_id ON condition_occurrence (person_id ASC);
+CREATE INDEX idx_condition_concept_id ON condition_occurrence (condition_concept_id ASC);
+CREATE INDEX idx_condition_visit_id ON condition_occurrence (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_measurement_person_id ON measurement (person_id ASC);
+CREATE INDEX idx_measurement_concept_id ON measurement (measurement_concept_id ASC);
+CREATE INDEX idx_measurement_visit_id ON measurement (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_note_person_id ON note (person_id ASC);
+CREATE INDEX idx_note_concept_id ON note (note_type_concept_id ASC);
+CREATE INDEX idx_note_visit_id ON note (visit_occurrence_id ASC);
+
+CREATE CLUSTERED INDEX idx_note_nlp_note_id ON note_nlp (note_id ASC);
+CREATE INDEX idx_note_nlp_concept_id ON note_nlp (note_nlp_concept_id ASC);
+
+CREATE CLUSTERED INDEX idx_observation_person_id ON observation (person_id ASC);
+CREATE INDEX idx_observation_concept_id ON observation (observation_concept_id ASC);
+CREATE INDEX idx_observation_visit_id ON observation (visit_occurrence_id ASC);
+
+CREATE INDEX idx_fact_relationship_id_1 ON fact_relationship (domain_concept_id_1 ASC);
+CREATE INDEX idx_fact_relationship_id_2 ON fact_relationship (domain_concept_id_2 ASC);
+CREATE INDEX idx_fact_relationship_id_3 ON fact_relationship (relationship_concept_id ASC);
+
+
+
+/************************
+
+Standardized health system data
+
+************************/
+
+
+
+
+
+/************************
+
+Standardized health economics
+
+************************/
+
+CREATE CLUSTERED INDEX idx_period_person_id ON payer_plan_period (person_id ASC);
+
+
+
+
 
 /************************
 
@@ -156,224 +332,21 @@ Standardized derived elements
 
 ************************/
 
+Use @Mapping_database
 
-CREATE INDEX idx_cohort_subject_id ON @ResultDatabaseSchema.cohort (subject_id ASC);
+CREATE INDEX idx_cohort_subject_id ON cohort (subject_id ASC);
+CREATE INDEX idx_cohort_c_definition_id ON cohort (cohort_definition_id ASC);
 
-CREATE INDEX idx_cohort_c_definition_id ON @ResultDatabaseSchema.cohort (cohort_definition_id ASC);
+CREATE INDEX idx_ca_subject_id ON cohort_attribute (subject_id ASC);
+CREATE INDEX idx_ca_definition_id ON cohort_attribute (cohort_definition_id ASC);
 
-CREATE INDEX idx_ca_subject_id ON @ResultDatabaseSchema.cohort_attribute (subject_id ASC);
+Use @NHISNSC_database
 
-CREATE INDEX idx_ca_definition_id ON @ResultDatabaseSchema.cohort_attribute (cohort_definition_id ASC);
+CREATE CLUSTERED INDEX idx_drug_era_person_id ON drug_era (person_id ASC);
+CREATE INDEX idx_drug_era_concept_id ON drug_era (drug_concept_id ASC);
 
-CREATE CLUSTERED INDEX idx_drug_era_person_id ON @ResultDatabaseSchema.drug_era (person_id ASC);
+CREATE CLUSTERED INDEX idx_dose_era_person_id ON dose_era (person_id ASC);
+CREATE INDEX idx_dose_era_concept_id ON dose_era (drug_concept_id ASC);
 
-CREATE INDEX idx_drug_era_concept_id ON @ResultDatabaseSchema.drug_era (drug_concept_id ASC);
-
-CREATE CLUSTERED INDEX idx_dose_era_person_id ON @ResultDatabaseSchema.dose_era (person_id ASC);
-
-CREATE INDEX idx_dose_era_concept_id ON @ResultDatabaseSchema.dose_era (drug_concept_id ASC);
-
-CREATE CLUSTERED INDEX idx_condition_era_person_id ON @ResultDatabaseSchema.condition_era (person_id ASC);
-
-CREATE INDEX idx_condition_era_concept_id ON @ResultDatabaseSchema.condition_era (condition_concept_id ASC);
-
-
-/****************************************************************************************************************************************
-*****************************************************	Non Cluster Index  **************************************************************
- ****************************************************************************************************************************************
- **********************************/
-
- /* PERSON */
-
-
-	CREATE NONCLUSTERED INDEX [<PERSON_1, sysname,>]
-		ON @ResultDatabaseSchema.PERSON ([person_id])
-			INCLUDE ([year_of_birth],[gender_concept_id] );
-			
-				 			
-
-
-	CREATE NONCLUSTERED INDEX [<PERSON_2, sysname,>]
-		ON @ResultDatabaseSchema.PERSON ([location_id])
-			INCLUDE ([person_id]);
-
-				 
-
-	CREATE NONCLUSTERED INDEX [<PERSON_3, sysname,>]
-		ON @ResultDatabaseSchema.PERSON ([provider_id]);
-
-				
-
-	CREATE NONCLUSTERED INDEX [<PERSON_4, sysname,>]
-		ON @ResultDatabaseSchema.PERSON ([care_site_id]);
-
-			
-/* OBSERVATION */ 
-	CREATE NONCLUSTERED INDEX [<OBSERVATION_1, sysname,>]
-		ON @ResultDatabaseSchema.[OBSERVATION] ([provider_id]);
-	CREATE NONCLUSTERED INDEX [<OBSERVATION_2, sysname,>]
-		ON @ResultDatabaseSchema.[OBSERVATION] ([visit_occurrence_id]);
-	CREATE NONCLUSTERED INDEX [<OBSERVATION_3, sysname,>]
-		ON @ResultDatabaseSchema.[OBSERVATION] ([value_as_number],[unit_concept_id])
-			INCLUDE ([observation_concept_id]);
-
-			 
-
-/* OBSERVATION_PERIOD */
-
-	CREATE NONCLUSTERED INDEX [<OBSERVATION_PERIOD_4, sysname,>]
-		ON @ResultDatabaseSchema.[OBSERVATION_PERIOD] ([PERSON_ID])
-			INCLUDE ([OBSERVATION_PERIOD_START_DATE]);
-
-			 
-
-	CREATE NONCLUSTERED INDEX [<OBSERVATION_PERIOD_5, sysname,>]
-		ON @ResultDatabaseSchema.[OBSERVATION_PERIOD] ([OBSERVATION_PERIOD_START_DATE],[OBSERVATION_PERIOD_END_DATE])
-			INCLUDE ([PERSON_ID]);
-
-			 
-
-/* VISIT */
-
-
-	CREATE NONCLUSTERED INDEX [<VISIT_1, sysname,>]
-		ON @ResultDatabaseSchema.[VISIT_OCCURRENCE] ([care_site_id]);
-
-		 
-
-/* CONDITION */
-
-
-	CREATE NONCLUSTERED INDEX [<CONDITION_1, sysname,>]
-		ON @ResultDatabaseSchema.[CONDITION_OCCURRENCE] ([provider_id]);
-
-		
-
-	CREATE NONCLUSTERED INDEX [<CONDITION_2, sysname,>]
-		ON @ResultDatabaseSchema.[CONDITION_OCCURRENCE] ([visit_occurrence_id]);
-
-		
-
-/* CONDITION_ERA */
-
-
-	CREATE NONCLUSTERED INDEX [<CONDITION_ERA_1, sysname,>]
-		ON @ResultDatabaseSchema.[CONDITION_ERA] ([person_id])
-			INCLUDE ([condition_concept_id],[condition_era_start_date]);
-
-			
-
-/* PROCEDURE */
-
-
-	CREATE NONCLUSTERED INDEX [<PROCEDURE_1, sysname,>]
-		ON @ResultDatabaseSchema.[PROCEDURE_OCCURRENCE] ([provider_id], [visit_occurrence_id]);
-
-		
-		
-
-/* DRUG */
-
-	CREATE NONCLUSTERED INDEX [<DRUG_1, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([provider_id]);
-
-		
- 
-	CREATE NONCLUSTERED INDEX [<DRUG_2, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([visit_occurrence_id])
-
-		
-
-	CREATE NONCLUSTERED INDEX [<DRUG_3, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([days_supply])
-			INCLUDE ([drug_concept_id])
-
-			
-
-	CREATE NONCLUSTERED INDEX [<DRUG_4, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([refills])
-			INCLUDE ([drug_concept_id])
-
-			
-
-	CREATE NONCLUSTERED INDEX [<DRUG_5, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([quantity])
-			INCLUDE ([drug_concept_id])
-
-			
-
-	CREATE NONCLUSTERED INDEX [<DRUG_6, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_EXPOSURE] ([drug_concept_id])
-			INCLUDE ([drug_source_value])
-
-			
-
-/* DRUG_ERA */
-
-	CREATE NONCLUSTERED INDEX [<DRUG_ERA_1, sysname,>]
-		ON @ResultDatabaseSchema.[DRUG_ERA] ([person_id])
-			INCLUDE ([drug_concept_id],[drug_era_start_date])
-
-		
-
-/* MEASUREMENT */
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_1, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([person_id])
-			INCLUDE ([measurement_concept_id],[measurement_date]);
-
-			
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_2, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([provider_id]);
-
-		
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_3, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([visit_occurrence_id]);
-
-		
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_4, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([value_as_number],[value_as_concept_id]);
-
-		
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_5, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([value_as_number],[unit_concept_id])
-			INCLUDE ([measurement_concept_id]);
-
-			
-
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_6, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([value_as_number],[unit_concept_id],[range_low],[range_high])
-			INCLUDE ([measurement_concept_id]);
-
-			
-		
-	CREATE NONCLUSTERED INDEX [<MEASUREMENT_7, sysname,>]
-		ON @ResultDatabaseSchema.[MEASUREMENT] ([value_as_number]);
-
-			
-
-/* PROVIDER */
-
-	CREATE NONCLUSTERED INDEX [<PROVIDER_1, sysname,>]
-		ON @ResultDatabaseSchema.[PROVIDER] ([care_site_id]);
-			
-			
-
-/* PAYER_PLAN_PERIOD */
-
-	CREATE NONCLUSTERED INDEX [<PAYER_PLAN_PERIOD_1, sysname,>]
-		ON @ResultDatabaseSchema.[PAYER_PLAN_PERIOD] ([person_id])
-			INCLUDE ([payer_plan_period_start_date],[payer_plan_period_end_date]);
-
-			
-
-/* ACHILLES_results */
-
-	--CREATE NONCLUSTERED INDEX [<ACHILLES_RESULTS, sysname,>]
-		--ON @ResultDatabaseSchema.[ACHILLES_results] ([count_value]);
-
-		
+CREATE CLUSTERED INDEX idx_condition_era_person_id ON condition_era (person_id ASC);
+CREATE INDEX idx_condition_era_concept_id ON condition_era (condition_concept_id ASC);

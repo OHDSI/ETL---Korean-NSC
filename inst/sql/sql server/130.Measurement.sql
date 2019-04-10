@@ -1,6 +1,6 @@
 /**************************************
  --encoding : UTF-8
- --Author: À¯½ÂÂù
+ --Author: SC You
  --Date: 2018.09.15
  
  @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
@@ -11,12 +11,12 @@
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: MEASUREMENT Å×ÀÌºí »ý¼º				
- --»ý¼º Table: MEASUREMENT
+ --Description: Create MEASUREMENT table
+ --Generating Table: MEASUREMENT
 ***************************************/
 
 /**************************************
- 0. Å×ÀÌºí »ý¼º  (33440451)
+ 0. Create table
 ***************************************/ 
 /*
 IF OBJECT_ID('@NHISNSC_database.MEASUREMENT', 'U') IS NULL
@@ -98,12 +98,12 @@ CREATE TABLE #measurement_mapping
 																																																																					
 
 /**************************************																																							   
- 1. ÇàÀ» ¿­·Î ÀüÈ¯
+ 1. Rotate rows to columns 
 ***************************************/ 
 /*
 select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @NHISNSC_database.GJ_VERTICAL
 from @NHISNSC_rawdata.@NHIS_GJ
-unpivot (meas_value for meas_type in ( -- 47 °ËÁø Ç×¸ñ
+unpivot (meas_value for meas_type in ( -- 47 ê²€ì§„ í•­ëª©
 	height, weight, waist, bp_high, bp_lwst,
 	blds, tot_chole, triglyceride, hdl_chole, ldl_chole,
 	hmg, gly_cd, olig_occu_cd, olig_ph, olig_prote_cd,
@@ -119,7 +119,7 @@ unpivot (meas_value for meas_type in ( -- 47 °ËÁø Ç×¸ñ
 */
 
 /**************************************
- 2. ¼öÄ¡Çü µ¥ÀÌÅÍ ÀÔ·Â 
+ 2. Insert continuous data
 ***************************************/ 
 INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
@@ -160,7 +160,7 @@ INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measuremen
 	
 
 /**************************************
- 2. ÄÚµåÇü µ¥ÀÌÅÍ ÀÔ·Â 
+ 2. Insert categorical data
 ***************************************/ 
 INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
@@ -198,7 +198,7 @@ INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measuremen
 ;
 
 /**************************************
- 3.source_valueÀÇ °ªÀ» value_as_number¿¡µµ ÀÔ·Â
+ 3.Insert source_value into vlaue_as_number
 ***************************************/
 /* 
 UPDATE @NHISNSC_database.MEASUREMENT

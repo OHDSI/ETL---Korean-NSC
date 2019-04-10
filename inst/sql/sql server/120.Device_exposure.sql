@@ -1,10 +1,11 @@
 /**************************************
  --encoding : UTF-8
- --Author: 조재형
+ --Author: JH Cho
  --Date: 2018.09.12
  
  @NHISNSC_rawdata: DB containing NHIS National Sample cohort DB
  @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @Mapping_database : DB for mapping table
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
@@ -16,19 +17,18 @@
  @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
  @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: device 테이블 생성
-			   1) device_exposure_end_date는 drug_exposure의 end_date와 같은 방법으로 생성
-			   2) quantity의 경우 단가(UN_COST) 혹은 금액(AMT)이 비정상이거나, 사용량(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)이 비정상인 경우가 많고,
-				  정수가 아닌 경우가 많음(메디폼을 잘라서 쓰는 경우 등) 
-					1. 단가(UN_COST)와 금액(AMT)이 정상인 경우 (Null이 아니거나 0원이 아닌 경우) AMT/UN_COST
-					2. 단가(UN_COST)와 금액(AMT)이 정상이 아닌 경우(0, Null, UN_COST>AMT) 30t의 경우 사용량(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)의 곱으로,
-					   60t의 경우 사용량 (DD_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ)의 곱으로 계산
-					3. 단가, 금액, 사용량 모두 비정상(0인 경우)일 경우 1로 정의
+ --Description: Create device_exposure table
+			   1) device_exposure_end_date should be created same way as end_date of drug_exposure table
+			   2) About the quantity, many cases are having abnormal cost(UN_COST, AMT), abnormal usages(DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ) or many cases are not integer(using medifoam by cutting)
+					1. If UN_COST and AMT are normal, then AMT/UN_COST 
+					2. If UN_COST and AMT are abnormal(0, Null, UN_COST>AMT), usage should be multiplied in case of 30T using DD_MQTY_EXEC_FREQ, MDCN_EXEC_FREQ and DD_MQTY_FREQ 
+																												or in case of 60T then using DD_EXEC_FREQ, MDCN_EXEC_FREQ, DD_MQTY_FREQ
+					3. If all of UN_COST,AMT and usages are abnormal('0') then define as '1'
  --Generating Table: Device_exposure
 ***************************************/
 
 /**************************************
- 1. 테이블 생성 
+ 1. Create table
 ***************************************/ 
 /*
 CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE ( 
@@ -48,21 +48,24 @@ CREATE TABLE @NHISNSC_database.DEVICE_EXPOSURE (
 */
 
 /**************************************
- 1-1. 임시 매핑 테이블 사용
+ 1-1. Using temp mapping table
 ***************************************/ 
+IF OBJECT_ID('tempdb..#mapping_table', 'U') IS NOT NULL
+	DROP TABLE #mapping_table;
+
 select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
 where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='device';
 
 /**************************************
- 2-1. 30T 입력
+ 2-1. Insert data using 30T
 ***************************************/  
 insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select  convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
+select  convert(bigint, convert(bigint, a.master_seq) + convert(bigint, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
 		b.target_concept_id as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
@@ -92,13 +95,13 @@ ON a.div_cd=b.source_code
 ;
 
 /**************************************
- 2-2. 60T 입력
+ 2-2. Insert data using 60T
 ***************************************/  
 insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
-select 	convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
+select 	convert(bigint, convert(bigint, a.master_seq) + convert(bigint, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
 		a.person_id as person_id,
 		b.target_concept_id as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
@@ -128,14 +131,14 @@ FROM
 ;
 
 /**************************************
- 2-3. 매핑테이블과 조인되지 않는 30T 입력
+ 2-3. Insert data using 30T which are unmapped with temp mapping table
 ***************************************/
 insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
 select  
-		convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
+		convert(bigint, convert(bigint, a.master_seq) + convert(bigint, row_number() over (partition by a.key_seq, a.seq_no order by a.div_cd))) as device_exposure_id,
 		a.person_id as person_id,
 		0 as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
@@ -157,7 +160,7 @@ FROM
 			case when x.dd_mqty_exec_freq is not null and x.dd_mqty_exec_freq > '0' and isnumeric(x.dd_mqty_exec_freq)=1 then cast(x.dd_mqty_exec_freq as float) else 1 end as dd_mqty_exec_freq,
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.@NHIS_30T x, @NHISNSC_database.SEQ_MASTER y
+	FROM (select * from @NHISNSC_rawdata.@NHIS_30T where div_type_cd in ('7', '8')) x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='130'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
@@ -165,14 +168,14 @@ where a.div_cd not in (select source_code from #mapping_table );
 
 
 /**************************************
- 2-4. 매핑테이블과 조인되지 않는 60T 입력
+ 2-4. Insert data using 60T which are unmapped with temp mapping table
 ***************************************/  
-insert into @NHISNSC_rawdata.DEVICE_EXPOSURE
+insert into @NHISNSC_database.DEVICE_EXPOSURE
 (device_exposure_id, person_id, device_concept_id, device_exposure_start_date, 
 device_exposure_end_date, device_type_concept_id, unique_device_id, quantity, 
 provider_id, visit_occurrence_id, device_source_value, device_source_concept_id)
 select 	
-		convert(bigint, convert(varchar, a.master_seq) + convert(varchar, row_number() over (partition by a.key_seq, a.seq_no order by b.target_concept_id))) as device_exposure_id,
+		convert(bigint, convert(bigint, a.master_seq) + convert(bigint, row_number() over (partition by a.key_seq, a.seq_no order by a.div_cd))) as device_exposure_id,
 		a.person_id as person_id,
 		0 as device_concept_id ,
 		CONVERT(VARCHAR, a.recu_fr_dt, 23) as device_source_start_date,
@@ -194,7 +197,7 @@ FROM
 			case when x.dd_mqty_freq is not null and x.dd_mqty_freq > '0' and isnumeric(x.dd_mqty_freq)=1 then cast(x.dd_mqty_freq as float) else 1 end as dd_mqty_freq,
 			case when x.dd_exec_freq is not null and x.dd_exec_freq > '0' and isnumeric(x.dd_exec_freq)=1 then cast(x.dd_exec_freq as float) else 1 end as dd_exec_freq,
 			cast(x.amt as float) as amt , cast(x.un_cost as float) as un_cost, y.master_seq, y.person_id
-	FROM @NHISNSC_rawdata.@NHIS_60T x, @NHISNSC_database.SEQ_MASTER y
+	FROM (select * from @NHISNSC_rawdata.@NHIS_60T where div_type_cd in ('7', '8')) x, @NHISNSC_database.SEQ_MASTER y
 	WHERE y.source_table='160'
 	AND x.key_seq=y.key_seq
 	AND x.seq_no=y.seq_no) a  
@@ -205,13 +208,13 @@ drop table #mapping_table;
 
 
 /*
--- quantity가 0인 경우 1로 변경 
+-- If quantity is '0' then change into '1'
 update @NHISNSC_database.DEVICE_EXPOSURE
 set quantity = 1
 where quantity = 0
 ;
 */
-/******************* quantity 0인 경우 1로 변경하기 전 결과 확인*********************
-select * from @ResultDatabaseSchema.device_exposure where quantity=0 -- 변경 전 -> 6268(정맥내유치침5275건) / 변경 후 -> 0
-select * from @ResultDatabaseSchema.device_exposure where quantity=1 -- 변경 전 -> 4548117 / 변경 후 -> 4554385
+/******************* Check the result of before and after changing quantity from '0' to '1' *********************
+select * from @ResultDatabaseSchema.device_exposure where quantity=0 -- before -> 6268(Catheterization of vein : 5275) / before -> 0
+select * from @ResultDatabaseSchema.device_exposure where quantity=1 -- after -> 4548117 / after -> 4554385
 *************************************************************************************/

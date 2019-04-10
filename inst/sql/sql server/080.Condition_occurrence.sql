@@ -1,10 +1,11 @@
 /**************************************
  --encoding : UTF-8
- --Author: 이성원
+ --Author: SW Lee
  --Date: 2018.09.11
  
  @NHISNSC_rawdata: DB containing NHIS National Sample cohort DB
  @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @Mapping_database : DB for mapping table
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
@@ -12,12 +13,12 @@
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
  @CONDITION_MAPPINGTABLE : mapping table between KCD and SNOMED-CT
- --Description: Condition_occurrence 테이블 생성
+ --Description: Create Condition_occurrence table
  --Generating Table: CONDITION_OCCURRENCE
 ***************************************/
 
 /**************************************
- 1. 테이블 생성
+ 1. Create table
 ***************************************/ 
 /*
 CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE ( 
@@ -34,34 +35,36 @@ CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE (
 	 condition_source_concept_id	VARCHAR(50)
 );
 */
-/**************************************
- 1-1. 임시 매핑 테이블 사용
-***************************************/ 
-select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
-into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
-where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='condition';);
 
 /**************************************
- 2. 데이터 입력
-    1) 관측시작일: 자격년도.01.01이 디폴트. 출생년도가 그 이전이면 출생년도.01.01
-	2) 관측종료일: 자격년도.12.31이 디폴트. 사망년월이 그 이후면 사망년.월.마지막날
+ 1-1. Create temp mapping table
+***************************************/
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
+into #mapping_table
+from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='condition'
+;
+
+/**************************************
+ 2. Insert date
+    1) start date : Qualified year + 01.01 as default. If Birth_year is before the qualified year then birth_year + 01.01
+	2) end date: Qualified year + 12.31 as default. If the death year is after the qualified year then death_year.month.day
 	
-	참고) 20T: 119,362,188
+	Ref) 20T: 119,362,188
         40T: 299,379,698
 	
 	-- checklist
-	   1) 상병 kcdcode full set 있는지 확인 -> 조수연 선생님 : 완료
-	   2) condition_type_concept_id 값 확인 -> 유승찬 선생님
+	   1) kcdcode full set -> SY Cho : Done
+	   2) Check condition_type_concept_id value-> SC You
 ***************************************/ 
--- observation_period & visiti_occurrence 에 있는 데이터
+-- Using data only between observation_period & visiti_occurrence 
 --((299,311,028), 00:50:39)
 INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
 	(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_end_date,
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
 select
-	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
+	convert(bigint, convert(bigint, m.master_seq) * 10 + convert(bigint, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
 	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
 	m.person_id as person_id,
 	n.target_concept_id as condition_concept_id,
@@ -87,32 +90,32 @@ from (
 			when c.SEQ_NO=2 then '44786629' --secondary condition
 			when c.SEQ_NO=3 then '45756845' --third condition
 			when c.SEQ_NO=4 then '45756846'	-- 4th condition
-			else '45756847'					-- 5상병을 포함한 나머지
+			else '45756847'					-- 5th condition and etc
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
 	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
-		@NHISNSC_rawdata.@NHIS_20T b, --@처리해줘야됨
+		@NHISNSC_rawdata.@NHIS_20T b, 
 		@NHISNSC_rawdata.@NHIS_40T c,
-		@NHISNSC_database.observation_period d --추가
+		@NHISNSC_database.observation_period d --added
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq
 	and a.seq_no=c.seq_no
-	and b.person_id=d.person_id --추가
-	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --추가
+	and b.person_id=d.person_id --added
+	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m, --added
 	#mapping_table as n
 where m.sick_sym=n.source_code;
 
 
 /********************************************
-	2-1. 매핑되지않는 건수들은 concept_id 를 0 넣음
+	2-1. Insert data which are unmapped with temp mapping table as concept_id=0
 ********************************************/
 INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
 	(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_end_date,
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
 select
-	convert(bigint, convert(varchar, m.master_seq) + convert(varchar, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by target_concept_id desc))) as condition_occurrence_id,
+	convert(bigint, (select max(condition_occurrence_id) from @NHISNSC_database.condition_occurrence) + convert(bigint, m.master_seq) * 10 + convert(bigint, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by m.sick_sym desc))) as condition_occurrence_id,
 	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
 	m.person_id as person_id,
 	0 as condition_concept_id,
@@ -139,20 +142,21 @@ from (
 			when c.SEQ_NO=2 then '44786629' --secondary condition
 			when c.SEQ_NO=3 then '45756845' --third condition
 			when c.SEQ_NO=4 then '45756846'	-- 4th condition
-			else '45756847'					-- 5상병을 포함한 나머지
+			else '45756847'					-- 5th condition and etc
 		end as sick_order,
 		case when b.sub_sick=c.sick_sym then 'Y' else 'N' end as sub_sick_yn
 	from (select master_seq, person_id, key_seq, seq_no from @NHISNSC_database.SEQ_MASTER where source_table='140') a, 
-		@NHISNSC_rawdata.@NHIS_20T b, --@처리해줘야됨
+		@NHISNSC_rawdata.@NHIS_20T b, 
 		@NHISNSC_rawdata.@NHIS_40T c,
-		@NHISNSC_database.observation_period d --추가
+		@NHISNSC_database.observation_period d --added
 	where a.person_id=b.person_id
 	and a.key_seq=b.key_seq
 	and a.key_seq=c.key_seq
 	and a.seq_no=c.seq_no
-	and b.person_id=d.person_id --추가
-	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m --추가
-where m.sick_sym not in (select source_code from #mapping_table);
+	and b.person_id=d.person_id --added
+	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m --added
+where m.sick_sym not in (select source_code from #mapping_table)
+;
 
 
 drop table #mapping_table;

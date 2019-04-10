@@ -1,29 +1,29 @@
 /**************************************
  --encoding : UTF-8
- --Author: Á¶ÀçÇü
+ --Author: JH Cho, JM Park
  --Date: 2018.09.10
  
  @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
  @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @Mapping_database : DB for mapping table
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: DEATH Å×ÀÌºí »ı¼º
-			   1) Ç¥º»ÄÚÈ£Æ®DB¿¡´Â »ç¸ÁÇÑ ³¯Â¥°¡ ³âµµ, ¿ù±îÁö Ç¥½Ã°¡ µÇ±â ¶§¹®¿¡ ÇØ´ç ¿ùÀÇ 1ÀÏ·Î »ç¸ÁÀÏ Á¤ÀÇ
-			   2) Ç¥º»ÄÚÈ£Æ®DB´Â »ç¸ÁÇÑ ÈÄ¿¡µµ Áø·á±â·ÏÀÌ ÀÖ´Â °æ¿ì°¡ ÀÖÀ½À» °í·Á
-			   3) ¹üÀ§(A00-A15), J46 µî ¸ÅÇÎ ¾ÈµÇ´Â codeµé insert(#death_mapping)
+ --Description: Create Death table
+ 				1) In sample cohort DB, death dates are recorded with year and month, not date, therefore, define death date as last day of death month
+				2) Consider the cases with clinical diagnosis after death
+			   	3) A00-A15, J46 and other unmapped codes need to be inserted to mapping table(#death mapping)
  --Generating Table: DEATH
 ***************************************/
 
-
 /**************************************
- 1. Å×ÀÌºí »ı¼º
+ 1. Create table
 ***************************************/  
 /*
--- death table »ı¼º
+-- death table
 CREATE TABLE  @NHISNSC_database.DEATH
 (
     person_id							INTEGER			NOT NULL , 
@@ -36,18 +36,16 @@ CREATE TABLE  @NHISNSC_database.DEATH
 );
 */
 
--- ÀÓ½Ã death mapping table  
+-- temp death mapping table  
  SELECT	source_code, source_code_description, target_concept_id
 		INTO #DEATH_MAPPINGTABLE
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
-where invalid_reason is null and concept_invalid_reason is null;
-
-update #mapping_table
-set invalid_reason=REPLACE(invalid_reason, '', NULL)
-, concept_invalid_reason=replace(concept_invalid_reason, '', NULL);
+from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.domain_id='condition' and b.domain_id='condition'
+	and a.target_concept_id=b.concept_id
+	and a.invalid_reason='' and b.invalid_reason='';
 
 --Insert additional death data to temp death mapping table
-insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A00-A09', 4134887, 'Infectious disease of digestive tract') -- 104180 Àû¿ëµÊ, ³ª¸ÓÁö´Â 1Çà¾¿ Àû¿ëµÊ
+insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A00-A09', 4134887, 'Infectious disease of digestive tract') -- 104180 ì ìš©ë¨, ë‚˜ë¨¸ì§€ëŠ” 1í–‰ì”© ì ìš©ë¨
 insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A15-A19', 434557, 'Tuberculosis')
 insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A30-A49', 432545, 'Bacterial infectious disease')
 insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A50-A64', 440647, 'Sexually transmitted infectious disease')
@@ -96,10 +94,9 @@ insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_des
 insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('T90-T98', 443403, 'Sequela')
 
 /**************************************
- 2. µ¥ÀÌÅÍ ÀÔ·Â ¹× È®ÀÎ
+ 2. Insert data
 ***************************************/  
-
---³¯Â¥¸¦ ÇØ´ç ¿ùÀÇ ¸»ÀÏ·Î Á¤ÀÇ, 55921°³ÀÇ ÇàÀÌ ¿µÇâÀ» ¹ŞÀ½(00:00:01)
+-- Define the last date of death month as death date
 INSERT INTO @NHISNSC_database.DEATH (person_id, death_date, death_type_concept_id, cause_concept_id, 
 cause_source_value, cause_source_concept_id)
 SELECT a.person_id AS PERSON_ID,
@@ -113,8 +110,7 @@ on a.dth_code1=b.source_code
 WHERE a.dth_ym IS NOT NULL and a.dth_ym != ''
 ;
 
-
---³¯Â¥ ¾ø´Â °æ¿ì ÇØ´ç ³âÀÇ 12¿ù 31ÀÏ·Î death Á¤ÀÇ, 19°³ÀÇ ÇàÀÌ ¿µÇâÀ» ¹ŞÀ½(00:00:00)
+-- If there is no death month, define 12.31 as death month and date 
 INSERT INTO @NHISNSC_database.DEATH (person_id, death_date, death_type_concept_id, cause_concept_id, 
 cause_source_value, cause_source_concept_id)
 SELECT a.person_id AS PERSON_ID,
@@ -128,5 +124,5 @@ on a.dth_code1=b.source_code
 WHERE a.dth_ym = '' and a.DTH_CODE1 != ''
 ;
 
---ÀÓ½Ã¸ÅÇÎÅ×ÀÌºí »èÁ¦
+--Delete temp death mapping table
 drop table #DEATH_MAPPINGTABLE;

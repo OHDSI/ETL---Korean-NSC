@@ -5,12 +5,12 @@
 @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
 @NHISNSC_database : DB for NHIS-NSC in CDM format
  
- --Description: OHDSI에서 생성한 dose_era 생성 쿼리
+ --Description: SQL query for dose_era table from OHDSI
  --Generating Table: DOSE_ERA
 ***************************************/
 
 /**************************************
- 1. dose_era 테이블 생성
+ 1. Create dose_era table
 ***************************************/ 
 /*
  CREATE TABLE @NHISNSC_database.DOSE_ERA (
@@ -25,9 +25,8 @@
 */
 
 /**************************************
- 2. 1단계: 필요 데이터 조회
+ 2. Step 1, Check the required data
 ***************************************/ 
-
 --------------------------------------------#cteDrugTarget
 SELECT
 	d.drug_exposure_id
@@ -40,8 +39,8 @@ SELECT
 	, COALESCE(d.drug_exposure_end_date, DATEADD(DAY, d.days_supply, d.drug_exposure_start_date), DATEADD(DAY, 1, drug_exposure_start_date)) AS drug_exposure_end_date
 INTO #cteDrugTarget 
 FROM @NHISNSC_database.DRUG_EXPOSURE d
-	 JOIN @NHISNSC_database.CONCEPT_ANCESTOR ca ON ca.descendant_concept_id = d.drug_concept_id
-	 JOIN @NHISNSC_database.CONCEPT c ON ca.ancestor_concept_id = c.concept_id
+	 JOIN @Mapping_database.CONCEPT_ANCESTOR ca ON ca.descendant_concept_id = d.drug_concept_id
+	 JOIN @Mapping_database.CONCEPT c ON ca.ancestor_concept_id = c.concept_id
 	 WHERE c.vocabulary_id = 'RxNorm'
 	 AND c.concept_class_ID = 'Ingredient';
 	
@@ -101,7 +100,7 @@ SELECT
 into #cteDoseEraEnds FROM #cteDrugTarget dt
 JOIN #cteEndDates e
 ON dt.person_id = e.person_id AND dt.ingredient_concept_id = e.ingredient_concept_id AND e.end_date >= dt.drug_exposure_start_date
---AND dt.unit_concept_id = e.unit_concept_id AND dt.dose_value = e.dose_value		--unit_concpet_id 와 dose_value 는 양쪽 테이블 모두에서 전부 null 이기에 제외시킴
+--AND dt.unit_concept_id = e.unit_concept_id AND dt.dose_value = e.dose_value		--Both unit_concpet_id and dose_value are excluded in both tables because of NULLs
 GROUP BY
 	dt.drug_exposure_id
 	, dt.person_id
@@ -112,11 +111,8 @@ GROUP BY
 	
 	
 /**************************************
- 3. 2단계: dose_era에 데이터 입력
+ 3. Step 2: Insert data into dose_era table
 ***************************************/ 
-
--- 임시테이블을 만들 당시 이미 drug exposure 에는 unit concept id 와 dose value 가 전부 null로 입력되있는데 현재 테이블에서는 not null로 설정되어있다.
-
 INSERT INTO @NHISNSC_database.dose_era (person_id, drug_concept_id, unit_concept_id, dose_value, dose_era_start_date, dose_era_end_date)
 SELECT
 	person_id

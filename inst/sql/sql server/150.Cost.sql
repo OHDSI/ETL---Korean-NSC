@@ -1,10 +1,11 @@
 /**************************************
  --encoding : UTF-8
- --Author: ÀÌ¼º¿ø, ¹ÚÁö¸í
+ --Author: SW Lee, JM Park
  --Date: 2018.09.20
  
  @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
  @NHISNSC_database : DB for NHIS-NSC in CDM format
+ @Mapping_database : DB for mapping table
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
@@ -16,12 +17,12 @@
  @PROCEDURE_MAPPINGTABLE : mapping table between Korean procedure and OMOP vocabulary
  @DEVICE_MAPPINGTABLE : mapping table between EDI and OMOP vocabulary
  
- --Description: Cost Å×ÀÌºí »ı¼º
+ --Description: Create Cost table
  --Generating Table: COST
 ***************************************/
 
 /**************************************
- 1. Å×ÀÌºí »ı¼º
+ 1. Create table
 ***************************************/ 
 /*
 CREATE TABLE @NHISNSC_database.COST (
@@ -50,16 +51,16 @@ CREATE TABLE @NHISNSC_database.COST (
 );
 */
 /**************************************
- 1-1. ÀÓ½Ã ¸ÅÇÎ Å×ÀÌºí »ç¿ë
+ 1-1. Using temp mapping table
 ***************************************/ 
-select a.source_code, a.target_concept_id, a.domain_id, REPLACE(invalid_reason, '', NULL) as invalid_reason 
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason 
 into #mapping_table
-from @NHISNSC_database.source_to_concept_map a join @NHISNSC_database.CONCEPT b on a.target_concept_id=b.concept_id
+from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
 where a.invalid_reason='' and b.invalid_reason='';
 
 
 /**************************************
- 2. µ¥ÀÌÅÍ ÀÔ·Â
+ 2. Insert data
     1) Visit
 	2) Drug
 	3) Procedure
@@ -68,10 +69,11 @@ where a.invalid_reason='' and b.invalid_reason='';
 ---------------------------------------------------
 -- 1) Visit
 ---------------------------------------------------
+
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -87,7 +89,7 @@ SELECT
 	b.edec_sbrdn_amt as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -105,7 +107,7 @@ and a.person_id=b.person_id;
 ---------------------------------------------------
 -- 2) Drug
 ---------------------------------------------------
--- Drug ¿Í Device ¿¡¼­ Áßº¹µÇ´Â Å°¸¦ È®ÀÎ
+-- Check the duplicated IDs from Drug and Device tables
 /*
 select * from #mapping_table
 where source_code in (
@@ -115,7 +117,7 @@ where source_code in (
 order by source_code
 */
 
--- ÇØ´çµÇ´Â Å°µéÀ» Drug ¿¡¼­ Á¦°Å
+-- Delete duplicated ID keys from Drug_era table
 delete from @NHISNSC_database.DRUG_EXPOSURE
 where drug_source_value in (select source_code from #mapping_table
 							where domain_id='drug' and source_code in (
@@ -125,18 +127,18 @@ where drug_source_value in (select source_code from #mapping_table
 											)
 								)
 
---ÇØ´çµÇ´Â Å°µéÀ» ¸ÅÇÎÅ×ÀÌºí¿¡¼­ Á¦°Å								
+-- Delete duplicated ID keys from temp mapping table
 delete from #mapping_table where domain_id='drug' and source_code in (
 												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 												where a.drug_exposure_id=b.device_exposure_id 
 													and a.person_id=b.person_id )
 
---µ¥ÀÌÅÍ ÀÔ·Â
--- ¿øº» Å×ÀÌºíÀÌ 30TÀÎ °æ¿ì
+--Insert data
+-- Source data: 30T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -152,7 +154,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -174,11 +176,11 @@ where left(a.drug_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ¿øº» Å×ÀÌºíÀÌ 60TÀÎ °æ¿ì
+-- Sourec data: 60T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -194,7 +196,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -220,11 +222,11 @@ and a.person_id=b.person_id;
 -- 3) Procedure
 ---------------------------------------------------
 
--- ¿øº» Å×ÀÌºíÀÌ 30TÀÎ °æ¿ì
+-- Sourec data: 30T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -240,7 +242,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -260,11 +262,11 @@ where left(a.procedure_occurrence_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ¿øº» Å×ÀÌºíÀÌ 60TÀÎ °æ¿ì
+-- Sourec data: 60T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -280,7 +282,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -303,11 +305,11 @@ and a.person_id=b.person_id;
 ---------------------------------------------------
 -- 4) Device
 ---------------------------------------------------
--- ¿øº» Å×ÀÌºíÀÌ 30TÀÎ °æ¿ì
+-- Sourec data: 30T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -323,7 +325,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -335,7 +337,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a, --procedure ¿Í device ¿¡ µÑ´Ù º¯È¯µÈ °Ç¼öµé Á¦¿Ü
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a, --procedure ì™€ device ì— ë‘˜ë‹¤ ë³€í™˜ëœ ê±´ìˆ˜ë“¤ ì œì™¸
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
@@ -345,11 +347,11 @@ where left(a.device_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 
 
--- ¿øº» Å×ÀÌºíÀÌ 60TÀÎ °æ¿ì
+-- Sourec data: 60T
 INSERT INTO @NHISNSC_database.COST
 	(cost_id, cost_event_id, cost_domain_id, cost_type_concept_id, currency_concept_id,
 	total_charge, total_cost, total_paid, paid_by_payer, paid_by_patient,
-	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductiable, paid_by_primary, paid_ingredient_cost,
+	paid_patient_copay, paid_patient_coinsurance, paid_patient_deductible, paid_by_primary, paid_ingredient_cost,
 	paid_dispensing_fee, payer_plan_period_id, amount_allowed, revenue_code_concept_id, drg_concept_id,
 	revenue_code_source_value, drg_source_value)
 SELECT 
@@ -365,7 +367,7 @@ SELECT
 	null as paid_by_patient,
 	null as paid_patient_copay,
 	null as paid_patient_coinsurance, 
-	null as paid_patient_deductiable,
+	null as paid_patient_deductible,
 	null as paid_by_primary,
 	null as paid_ingredient_cost,
 	null as paid_dispensing_fee,
@@ -377,7 +379,7 @@ SELECT
 	null as drg_source_value
 from (select device_exposure_id, person_id, device_exposure_start_date
 	from @NHISNSC_database.DEVICE_EXPOSURE 
-	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a,  --procedure ¿Í device ¿¡ µÑ´Ù º¯È¯µÈ °Ç¼öµé Á¦¿Ü
+	where device_source_value not in (select source_code from #mapping_table where domain_id='procedure' )) a,  --procedure ì™€ device ì— ë‘˜ë‹¤ ë³€í™˜ëœ ê±´ìˆ˜ë“¤ ì œì™¸
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from (select master_seq, key_seq, seq_no, person_id from @NHISNSC_database.SEQ_MASTER where source_table='160') m, 
 	@NHISNSC_rawdata.@NHIS_60T n

@@ -1,6 +1,6 @@
 /**************************************
  --encoding : UTF-8
- --Author: 이성원, 박지명
+ --Author: SW Lee, JM Park
  --Date: 2018.08.21
  
  @NHISNSC_raw : DB containing NHIS National Sample cohort DB
@@ -11,36 +11,36 @@
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: 표본코호트DB T1 테이블들 중 30T, 40T, 60T, 검진, 자격 테이블의 primary key를 저장하고 유니크한 일련번호를 저장한 테이블 생성
-			   생성된 일련번호는 condition, drug, procedure, device 테이블의 primary key로 사용되며, 검진 테이블에 대해 생성한 일련번호는 visit_occurrence에 입력되는 데이터의 primary key로 사용
-			   , 자격 테이블에 대해 생성한 일련번호는 observation에 입력되는 primary key로 사용
-               변환된 CDM 데이터에서 표본코호트DB 데이터를 추적하기 위한 목적으로 생성함
+ --Description: Among T1 tables of sample cohort, keep primary keys of 30T, 40T, 60T, GJ, JK table and create table which has unique serial number.
+				The serial number is used as primary key of condition, drug, procedure and device tables, and the serial number of GJ table will be used as priomary key of visit_occurrence table.
+			   the serial number of JK table will be used as priomary key of observation table.
+			   Those keys is created for tracking sample cogort DB in converted CDM DB
  --Generating Table: SEQ_MASTER
 ***************************************/
 
 /**************************************
- 1. 테이블 생성
-    : 일련번호(PK), 소스 테이블, person_id, 30T, 40T, 60T, 검진, 자격 테이블의 Primary key들을 컬럼으로 하는 테이블 생성
+ 1. Create table
+    : serial number(PK), source table, person_id, primary keys of 30T, 40T, 60T, GJ, JK tables
 ***************************************/  
 CREATE TABLE @NHISNSC_database.SEQ_MASTER (
 	master_seq		BIGINT	identity(1, 1) PRIMARY KEY,
-	source_table	CHAR(3)	NOT NULL, -- 30T, 40T, 60T는 130, 140, 160. 검진은 'GJT', 자격은 'JKT'
-	person_id		INT	NOT NULL, -- 모두
+	source_table	CHAR(3)	NOT NULL, -- 30T = 130, 40T = 140, 60T = 160 GJ ='GJT', JK = 'JKT'
+	person_id		INT	NOT NULL, 
 	key_seq			BIGINT	NULL, -- 30T, 40T, 60T
 	seq_no			NUMERIC(4)	NULL, -- 30T, 40T, 60T
-	hchk_year		CHAR(4)	NULL, -- 검진	
-	stnd_y			CHAR(4) NULL, -- 자격		--hchk_year 에 넣어도 될듯
+	hchk_year		CHAR(4)	NULL, -- GJ
+	stnd_y			CHAR(4) NULL, -- JK 
 )
--- 607738697
+
 
 /**************************************
- 2. 30T에 대한 데이터 입력
-    : 일련번호는 3000000001, 30억대부터 시작
+ 2. Insert data of 30T
+    : serial number is starting from 3000000001
 ***************************************/
--- 1) 일련번호 초기화
+-- 1) Reset the serial number
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 3000000000);
 
--- 2) 데이터 입력	576969959  36:35
+-- 2) Insert data
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '130', b.person_id, a.key_seq, a.seq_no
@@ -49,13 +49,13 @@ WHERE a.key_seq=b.key_seq
 ;
 
 /**************************************
- 3. 40T에 대한 데이터 입력
-    : 일련번호는 4000000001, 40억대부터 시작
+ 3. Insert data of 40T
+    : serial number is starting from 4000000001
 ***************************************/
--- 1) 일련번호 초기화
+-- 1) Reset the serial number
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 4000000000);
 
--- 2) 데이터 입력	299379695	23:40
+-- 2) Insert data
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '140', b.person_id, a.key_seq, a.seq_no
@@ -64,13 +64,13 @@ WHERE a.key_seq=b.key_seq
 ;
 
 /**************************************
- 4. 60T에 대한 데이터 입력
-    : 일련번호는 6000000001, 60억대부터 시작
+ 4. Insert data of 60T
+    : serial number is starting from 6000000001
 ***************************************/
--- 1) 일련번호 초기화  
+-- 1) Reset the serial number
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 6000000000);
 
--- 2) 데이터 입력	396777913	36:59
+-- 2) Insert data
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, key_seq, seq_no)
 SELECT '160', b.person_id, a.key_seq, a.seq_no
@@ -79,14 +79,14 @@ WHERE a.key_seq=b.key_seq
 ;
 
 /**************************************
- 5. 검진에 대한 데이터 입력
-    : 일련번호는 800000000001, 8000억대부터 시작
-	: visit_occurrence_id가 12자리 숫자이므로 자릿수를 맞춰 줌
+ 5. Insert data of GJ table
+    : serial number is starting from 800000000001
+	: visit_occurrence_id is consisted with 12 numbers, match the numbers
 ***************************************/
--- 1) 일련번호 초기화
+-- 1) Reset the serial number
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 800000000000);
 
--- 2) 데이터 입력	2210067		9
+-- 2) Insert data
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, hchk_year)
 SELECT 'GJT', person_id, hchk_year
@@ -94,21 +94,21 @@ FROM @NHISNSC_rawdata.@NHIS_GJ
 GROUP BY hchk_year, person_id
 ;
 /**************************************
- 6. 자격에 대한 데이터 입력
-	: 일련번호는 900000000001, 9000억대부터 시작
+ 6. Insert data of JK table
+	: serial number is starting from 900000000001
 **************************************/
--- 1) 일련번호 초기화
+-- 1) Reset the serial number
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', RESEED, 900000000000);
 
--- 2) 데이터 입력	12132633		1:15
+-- 2) Insert data
 INSERT INTO @NHISNSC_database.SEQ_MASTER
 	(source_table, person_id, stnd_y)
 SELECT 'JKT', person_id, STND_Y
-FROM @NHISNSC_rawdata.dbo.@NHIS_JK
+FROM @NHISNSC_rawdata.@NHIS_JK
 GROUP BY STND_Y, person_id;
 ;
 
 /**************************************
- 7. 일련번호 자동증가 비활성화시킴
+ 7. Deactivate the auto increment serial number
 ***************************************/
 DBCC CHECKIDENT('@NHISNSC_database.seq_master', NORESEED);

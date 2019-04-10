@@ -1,4 +1,4 @@
-﻿/*********************************************************************************
+/*********************************************************************************
 # Copyright 2017 Observational Health Data Sciences and Informatics
 #
 #
@@ -23,7 +23,7 @@ OHDSI-SQL File Instructions
  1. Set parameter name of schema that contains CDMv4 instance
     (@SOURCE_CDMV4, @SOURCE_CDMV4_SCHEMA)
  2. Set parameter name of schema that contains CDMv5 instance
-    (@TARGET_CDMV5, @NHISNSC_database)
+    (@TARGET_CDMV5, @TARGET_CDMV5_SCHEMA)
  3. Run this script through SqlRender to produce a script that will work in your
     source dialect. SqlRender can be found here: https://github.com/OHDSI/SqlRender
  4. Run the script produced by SQL Render on your target RDBDMS.
@@ -39,16 +39,6 @@ OHDSI-SQL File Instructions
 	 [CDM].[CDMSCHEMA]
 	
 *********************************************************************************/
-/* SCRIPT PARAMETERS */
-
-	
-	--{DEFAULT @TARGET_CDMV5 = '[CDM]' } -- The target CDMv5 database name
-	--{DEFAULT @NHISNSC_database = '[CDM].[CDMSCHEMA]' } -- the target CDMv5 database plus schema
-
-USE @NHISNSC_database;
-
-
-
 /****
 DRUG ERA
 Note: Eras derived from DRUG_EXPOSURE table, using 30d gap
@@ -68,8 +58,8 @@ SELECT d.DRUG_EXPOSURE_ID
 	,c.CONCEPT_ID AS INGREDIENT_CONCEPT_ID
 INTO #cteDrugTarget
 FROM @NHISNSC_database.DRUG_EXPOSURE d
-INNER JOIN @NHISNSC_database.CONCEPT_ANCESTOR ca ON ca.DESCENDANT_CONCEPT_ID = d.DRUG_CONCEPT_ID
-INNER JOIN @NHISNSC_database.CONCEPT c ON ca.ANCESTOR_CONCEPT_ID = c.CONCEPT_ID
+INNER JOIN @Mapping_database.CONCEPT_ANCESTOR ca ON ca.DESCENDANT_CONCEPT_ID = d.DRUG_CONCEPT_ID
+INNER JOIN @Mapping_database.CONCEPT c ON ca.ANCESTOR_CONCEPT_ID = c.CONCEPT_ID
 WHERE c.VOCABULARY_ID = 'RxNorm'
 	AND c.CONCEPT_CLASS_ID = 'Ingredient';
 
