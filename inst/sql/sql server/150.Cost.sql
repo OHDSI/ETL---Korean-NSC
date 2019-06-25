@@ -53,6 +53,8 @@ CREATE TABLE @NHISNSC_database.COST (
 /**************************************
  1-1. Using temp mapping table
 ***************************************/ 
+IF OBJECT_ID('tempdb..#mapping_table', 'U') IS NOT NULL
+	DROP TABLE #mapping_table;
 select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason 
 into #mapping_table
 from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
@@ -170,8 +172,8 @@ from (select person_id, drug_exposure_id, drug_exposure_start_date
 	(select m.master_seq, m.key_seq, m.seq_no, m.person_id, n.amt
 	from @NHISNSC_database.SEQ_MASTER m, @NHISNSC_rawdata.@NHIS_30T n
 	where m.source_table='130'
-	and m.key_seq=n.key_seq
-	and m.seq_no=n.seq_no) b
+		and m.key_seq=n.key_seq
+		and m.seq_no=n.seq_no) b
 where left(a.drug_exposure_id, 10)=b.master_seq
 and a.person_id=b.person_id;
 

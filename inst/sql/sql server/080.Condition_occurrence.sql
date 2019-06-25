@@ -115,8 +115,7 @@ INSERT INTO @NHISNSC_database.CONDITION_OCCURRENCE
 	condition_type_concept_id, stop_reason, provider_id, visit_occurrence_id, condition_source_value, 
 	condition_source_concept_id)
 select
-	convert(bigint, (select max(condition_occurrence_id) from @NHISNSC_database.condition_occurrence) + convert(bigint, m.master_seq) * 10 + convert(bigint, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by m.sick_sym desc))) as condition_occurrence_id,
-	--ROW_NUMBER() OVER(partition BY key_seq, seq_no order by concept_id desc) AS rank, m.seq_no,
+	convert(bigint, convert(bigint, m.master_seq) * 10 + convert(bigint, ROW_NUMBER() OVER(partition BY key_seq, seq_no order by m.sick_sym desc))) as condition_occurrence_id,
 	m.person_id as person_id,
 	0 as condition_concept_id,
 	convert(date, m.recu_fr_dt, 112) as condition_start_date,
