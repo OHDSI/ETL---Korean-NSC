@@ -64,10 +64,10 @@ IF OBJECT_ID('tempdb..#five', 'U') IS NOT NULL
 select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 	into #temp
 from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
-where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='device';
+where a.invalid_reason is null and b.invalid_reason is null and a.domain_id='device';
 
 select * into #device from @Mapping_database.source_to_concept_map where domain_id='device';
-select * into #five from @Mapping_database.source_to_concept_map where domain_id='pro';
+select * into #five from @Mapping_database.source_to_concept_map where domain_id='procedure';
 
 select a.*
 	into #duplicated

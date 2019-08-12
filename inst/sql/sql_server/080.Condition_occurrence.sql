@@ -42,7 +42,7 @@ CREATE TABLE @NHISNSC_database.CONDITION_OCCURRENCE (
 select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
 into #mapping_table
 from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
-where a.invalid_reason='' and b.invalid_reason='' and a.domain_id='condition'
+where a.invalid_reason is null and b.invalid_reason is null and a.domain_id='condition'
 ;
 
 /**************************************

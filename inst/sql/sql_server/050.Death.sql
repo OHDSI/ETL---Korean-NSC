@@ -42,7 +42,7 @@ CREATE TABLE  @NHISNSC_database.DEATH
 from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
 where a.domain_id='condition' and b.domain_id='condition'
 	and a.target_concept_id=b.concept_id
-	and a.invalid_reason='' and b.invalid_reason='';
+	and a.invalid_reason is null and b.invalid_reason is null;
 
 --Insert additional death data to temp death mapping table
 insert into #DEATH_MAPPINGTABLE (source_code, target_concept_id, source_code_description) values ('A00-A09', 4134887, 'Infectious disease of digestive tract') -- 104180 적용됨, 나머지는 1행씩 적용됨
