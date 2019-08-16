@@ -45,6 +45,12 @@ from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b 
 where a.invalid_reason is null and b.invalid_reason is null and a.domain_id='condition'
 ;
 
+select a.source_code, a.target_concept_id, a.domain_id, REPLACE(a.invalid_reason, '', NULL) as invalid_reason
+into #mapping_table2
+from @Mapping_database.source_to_concept_map a join @Mapping_database.CONCEPT b on a.target_concept_id=b.concept_id
+where a.invalid_reason is null and b.invalid_reason is null
+;
+
 /**************************************
  2. Insert date
     1) start date : Qualified year + 01.01 as default. If Birth_year is before the qualified year then birth_year + 01.01
@@ -154,8 +160,9 @@ from (
 	and a.seq_no=c.seq_no
 	and b.person_id=d.person_id --added
 	and convert(date, c.recu_fr_dt, 112) between d.observation_period_start_date and d.observation_period_end_date) as m --added
-where m.sick_sym not in (select source_code from #mapping_table)
+where m.sick_sym not in (select source_code from #mapping_table2)
 ;
 
 
 drop table #mapping_table;
+drop table #mapping_table2;
