@@ -1,44 +1,32 @@
-# Copyright 2019 Observational Health Data Sciences and Informatics
-#
-# This file is part of etlKoreanNSC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http:\\\\www.apache.org\\licenses\\LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-#' executeETL Function
-#' 
-#' This function allows to execute ETL process.
-#' @param NHISNSC_rawdata
-#' @param NHISNSC_database
-#' @param Mapping_database
-#' @param NHIS_JK
-#' @param NHIS_20T
-#' @param NHIS_30T
-#' @param NHIS_40T
-#' @param NHIS_60T
-#' @param NHIS_GJ
-#' @param NHIS_YK
-#' @param connection
-#' @param outputFolder
-#' @param CDM_ddl
-#' @param master_table boolean
-#' @param location
-#' @param care_site
-#' @param person
-#' @param death
-#' @param observation_period
-#' 
-#' @export
-#' @example executeNHISETL() 
+NHISNSC_rawdata <- "nhisnsc2013original.dbo"
+NHISNSC_database <- "NHIS_NSC_v5_3_1.dbo"
+NHIS_JK <- "NHID_JK"
+NHIS_20T <- "NHID_GY20_T1"
+NHIS_30T <- "NHID_GY30_T1"
+NHIS_40T <- "NHID_GY40_T1"
+NHIS_60T <- "NHID_GY60_T1"
+NHIS_GJ <- "NHID_GJ"
+NHIS_YK <- "NHID_YK"
+Mapping_database <- "NHIS_NSC_NEW_MAPPING.dbo"
+outputFolder <- "/home/youngjin426"
+
+#usethis::edit_r_environ()
+Sys.getenv("myCdmSchema")
+
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+    dbms = 'sql server'
+    , server = Sys.getenv("myCdmServer")
+    , schema = Sys.getenv("myCdmSchema")
+    , user = Sys.getenv("userId")
+    , password = Sys.getenv("password")
+)
+DatabaseConnector::connect(connectionDetails = connectionDetails)
+connection <- DatabaseConnector::connect(connectionDetails)
+
+
+
+
 executeNHISETL <- function(NHISNSC_rawdata,
                            NHISNSC_database,
                            Mapping_database,
@@ -868,3 +856,17 @@ executeNHISETL <- function(NHISNSC_rawdata,
         
     } ## end
 }
+
+# executeNHISETL(NHISNSC_rawdata,
+#                NHISNSC_database,
+#                Mapping_database,
+#                NHIS_JK,
+#                NHIS_20T,
+#                NHIS_30T,
+#                NHIS_40T,
+#                NHIS_60T,
+#                NHIS_GJ,
+#                NHIS_YK,
+#                connection,
+#                outputFolder)
+
