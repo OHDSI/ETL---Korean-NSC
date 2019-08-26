@@ -60,7 +60,7 @@ INTO #cteDrugTarget
 FROM @NHISNSC_database.DRUG_EXPOSURE d
 INNER JOIN @Mapping_database.CONCEPT_ANCESTOR ca ON ca.DESCENDANT_CONCEPT_ID = d.DRUG_CONCEPT_ID
 INNER JOIN @Mapping_database.CONCEPT c ON ca.ANCESTOR_CONCEPT_ID = c.CONCEPT_ID
-WHERE c.VOCABULARY_ID = 'RxNorm'
+WHERE c.VOCABULARY_ID in ('RxNorm', 'RxNorm Extension')
 	AND c.CONCEPT_CLASS_ID = 'Ingredient';
 
 /* / */

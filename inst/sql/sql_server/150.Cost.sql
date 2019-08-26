@@ -119,6 +119,7 @@ where source_code in (
 order by source_code
 */
 
+/*
 -- Delete duplicated ID keys from Drug_era table
 delete from @NHISNSC_database.DRUG_EXPOSURE
 where drug_source_value in (select source_code from #mapping_table
@@ -134,6 +135,7 @@ delete from #mapping_table where domain_id='drug' and source_code in (
 												select drug_source_value from @NHISNSC_database.DRUG_EXPOSURE a, @NHISNSC_database.DEVICE_EXPOSURE b
 												where a.drug_exposure_id=b.device_exposure_id 
 													and a.person_id=b.person_id )
+*/
 
 --Insert data
 -- Source data: 30T

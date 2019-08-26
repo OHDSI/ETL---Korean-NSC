@@ -48,7 +48,7 @@ INTO #cteDrugTarget
 FROM @NHISNSC_database.DRUG_EXPOSURE d
 	 JOIN @Mapping_database.CONCEPT_ANCESTOR ca ON ca.descendant_concept_id = d.drug_concept_id
 	 JOIN @Mapping_database.CONCEPT c ON ca.ancestor_concept_id = c.concept_id
-	 WHERE c.vocabulary_id = 'RxNorm'
+	 WHERE c.vocabulary_id in ('RxNorm', 'RxNorm Extension') 
 	 AND c.concept_class_ID = 'Ingredient';
 	
 	
