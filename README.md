@@ -1,8 +1,8 @@
-**ETL process for conversion of NHIS-Korean National Sample Cohort into OMOP-CDM version 5.0.1**
+**ETL process for conversion of NHIS-Korean National Sample Cohort into OMOP-CDM version 5.3.1**
 ==============================================
 
 # Description
-* ETL code for converting Korean National Sample Cohort (NSC) derived from national insurance health service into OMOP-CDM v5.0.1 via SQL-server developed by Ajou University
+* ETL code for converting Korean National Sample Cohort (NSC) derived from national insurance health service into OMOP-CDM v5.3.1 via SQL-server developed by Ajou University
 
 ## Encoding
 * UTF-8

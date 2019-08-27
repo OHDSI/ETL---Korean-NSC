@@ -1,25 +1,26 @@
 /**************************************
  --encoding : UTF-8
- --Author: 유승찬
- --Date: 2017.09.26
+ --Author: SC You
+ --Date: 2018.09.15
  
- @NHISDatabaseSchema : DB containing NHIS National Sample cohort DB
+ @NHISNSC_rawdata : DB containing NHIS National Sample cohort DB
+ @NHISNSC_database : DB for NHIS-NSC in CDM format
  @NHIS_JK: JK table in NHIS NSC
  @NHIS_20T: 20 table in NHIS NSC
  @NHIS_30T: 30 table in NHIS NSC
  @NHIS_40T: 40 table in NHIS NSC
  @NHIS_60T: 60 table in NHIS NSC
  @NHIS_GJ: GJ table in NHIS NSC
- --Description: MEASUREMENT 테이블 생성				
- --생성 Table: MEASUREMENT
+ --Description: Create MEASUREMENT table
+ --Generating Table: MEASUREMENT
 ***************************************/
 
 /**************************************
- 0. 테이블 생성  (33440451)
+ 0. Create table
 ***************************************/ 
-
-IF OBJECT_ID('@ResultDatabaseSchema.MEASUREMENT', 'U') IS NULL
-CREATE TABLE @ResultDatabaseSchema.MEASUREMENT
+/*
+IF OBJECT_ID('@NHISNSC_database.MEASUREMENT', 'U') IS NULL
+CREATE TABLE @NHISNSC_database.MEASUREMENT
     (
      measurement_id						BIGINT						NOT NULL , 
      person_id							INTEGER						NOT NULL ,
@@ -40,7 +41,7 @@ CREATE TABLE @ResultDatabaseSchema.MEASUREMENT
 	 unit_source_value					VARCHAR(50) 				NULL,
 	 value_source_value					VARCHAR(50)					NULL
 	);
-
+*/
 
 -- measurement mapping table(temp)
 
@@ -97,10 +98,11 @@ CREATE TABLE #measurement_mapping
 																																																																					
 
 /**************************************																																							   
- 1. 행을 열로 전환
+ 1. Rotate rows to columns 
 ***************************************/ 
-select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @ResultDatabaseSchema.GJ_VERTICAL
-from @NHISDatabaseSchema.@NHIS_GJ
+/*
+select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value into @NHISNSC_database.GJ_VERTICAL
+from @NHISNSC_rawdata.@NHIS_GJ
 unpivot (meas_value for meas_type in ( -- 47 검진 항목
 	height, weight, waist, bp_high, bp_lwst,
 	blds, tot_chole, triglyceride, hdl_chole, ldl_chole,
@@ -113,35 +115,17 @@ unpivot (meas_value for meas_type in ( -- 47 검진 항목
 	past_dsqty_rsps_cd, dsqty_rsps_cd, drnk_habit_rsps_Cd, tm1_drkqty_rsps_cd, exerci_freq_rsps_cd, 
 	mov20_wek_freq_id, mov30_wek_freq_id, wlk30_wek_freq_id
 )) as unpivortn
-
-
-
-
+;
+*/
 
 /**************************************
- 2. 수치형 데이터 입력  
+ 2. Insert continuous data
 ***************************************/ 
-INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
+INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
-	select	case	when a.meas_type = 'HEIGHT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'WEIGHT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'WAIST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BP_HIGH' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BP_LWST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'BLDS' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'TOT_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'TRIGLYCERIDE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HDL_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'LDL_CHOLE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'HMG' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_PH' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'CREATININE' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SGOT_AST' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'SGPT_ALT' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'GAMMA_GTP' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as measurement_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as measurement_id,
 			a.person_id as person_id,
 			b.measurement_concept_id as measurement_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as measurement_date,
@@ -161,11 +145,11 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 			a.meas_value as value_source_value
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value 			
-			from @ResultDatabaseSchema.GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #measurement_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') >= isnull(cast(b.answer as char),'0')
-		JOIN @ResultDatabaseSchema.SEQ_MASTER c
+		JOIN @NHISNSC_database.SEQ_MASTER c
 		on a.person_id = cast(c.person_id as char)
 			and a.hchk_year = c.hchk_year
 	where (a.meas_value != '' and substring(a.meas_type, 1, 30) in ('HEIGHT', 'WEIGHT',	'WAIST', 'BP_HIGH', 'BP_LWST', 'BLDS', 'TOT_CHOLE', 'TRIGLYCERIDE',	'HDL_CHOLE',		
@@ -176,16 +160,13 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 	
 
 /**************************************
- 2. 코드형 데이터 입력  
+ 2. Insert categorical data
 ***************************************/ 
-INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
+INSERT INTO @NHISNSC_database.MEASUREMENT (measurement_id, person_id, measurement_concept_id, measurement_date, measurement_time, measurement_type_concept_id, operator_concept_id, value_as_number, value_as_concept_id,			
 											unit_concept_id, range_low, range_high, provider_id, visit_occurrence_id, measurement_source_value, measurement_source_concept_id, unit_source_value, value_source_value)
 
 
-	select	case	when a.meas_type = 'GLY_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_OCCU_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					when a.meas_type = 'OLIG_PROTE_CD' then cast(concat(c.master_seq, b.id_value) as bigint)
-					end as measurement_id,
+	select	cast(concat(c.master_seq, b.id_value) as bigint) as measurement_id,
 			a.person_id as person_id,
 			b.measurement_concept_id as measurement_concept_id,
 			cast(CONVERT(VARCHAR, a.hchk_year+'0101', 23)as date) as measurement_date,
@@ -205,11 +186,11 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 			a.meas_value as value_source_value
 
 	from (select hchk_year, person_id, ykiho_gubun_cd, meas_type, meas_value 			
-			from @ResultDatabaseSchema.GJ_VERTICAL) a
+			from @NHISNSC_rawdata.GJ_VERTICAL) a
 		JOIN #measurement_mapping b 
 		on isnull(a.meas_type,'') = isnull(b.meas_type,'') 
 			and isnull(a.meas_value,'0') = isnull(cast(b.answer as char),'0')
-		JOIN @ResultDatabaseSchema.SEQ_MASTER c
+		JOIN @NHISNSC_database.SEQ_MASTER c
 		on a.person_id = cast(c.person_id as char)
 			and a.hchk_year = c.hchk_year
 	where (a.meas_value != '' and substring(a.meas_type, 1, 30) in ('GLY_CD', 'OLIG_OCCU_CD', 'OLIG_PROTE_CD')
@@ -217,8 +198,11 @@ INSERT INTO @ResultDatabaseSchema.MEASUREMENT (measurement_id, person_id, measur
 ;
 
 /**************************************
- 3.source_value의 값을 value_as_number에도 입력
-***************************************/ 
-UPDATE @ResultDatabaseSchema.MEASUREMENT
+ 3.Insert source_value into vlaue_as_number
+***************************************/
+/* 
+UPDATE @NHISNSC_database.MEASUREMENT
 SET value_as_number = measurement_source_value
 where measurement_source_value is not null
+;
+*/
