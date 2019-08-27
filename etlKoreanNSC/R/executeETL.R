@@ -874,4 +874,4 @@ executeNHISETL <- function(NHISNSC_rawdata,
 }
 
 
-ParallelLogger::logInfo(sprintf("elapsed time : %s %s \n",elapsedTime))
+

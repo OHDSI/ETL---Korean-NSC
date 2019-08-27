@@ -857,16 +857,16 @@ executeNHISETL <- function(NHISNSC_rawdata,
     } ## end
 }
 
-# executeNHISETL(NHISNSC_rawdata,
-#                NHISNSC_database,
-#                Mapping_database,
-#                NHIS_JK,
-#                NHIS_20T,
-#                NHIS_30T,
-#                NHIS_40T,
-#                NHIS_60T,
-#                NHIS_GJ,
-#                NHIS_YK,
-#                connection,
-#                outputFolder)
+executeNHISETL(NHISNSC_rawdata,
+               NHISNSC_database,
+               Mapping_database,
+               NHIS_JK,
+               NHIS_20T,
+               NHIS_30T,
+               NHIS_40T,
+               NHIS_60T,
+               NHIS_GJ,
+               NHIS_YK,
+               connection,
+               outputFolder)
 
