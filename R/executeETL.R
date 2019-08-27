@@ -17,25 +17,41 @@
 #' executeETL Function
 #' 
 #' This function allows to execute ETL process.
-#' @param NHISNSC_rawdata
-#' @param NHISNSC_database
-#' @param Mapping_database
-#' @param NHIS_JK
-#' @param NHIS_20T
-#' @param NHIS_30T
-#' @param NHIS_40T
-#' @param NHIS_60T
-#' @param NHIS_GJ
-#' @param NHIS_YK
-#' @param connection
-#' @param outputFolder
-#' @param CDM_ddl
+#' @param NHISNSC_rawdata raw schema
+#' @param NHISNSC_database load schema
+#' @param Mapping_database mapping schema
+#' @param NHIS_JK JK table
+#' @param NHIS_20T 20T table
+#' @param NHIS_30T 30T table
+#' @param NHIS_40T 40T table
+#' @param NHIS_60T 60T table
+#' @param NHIS_GJ GJ table
+#' @param NHIS_YK YK table
+#' @param connection db connection information
+#' @param outputFolder error load path
+#' @param CDM_ddl boolean
 #' @param master_table boolean
-#' @param location
-#' @param care_site
-#' @param person
-#' @param death
-#' @param observation_period
+#' @param location boolean
+#' @param care_site boolean
+#' @param person boolean
+#' @param death boolean
+#' @param observation_period boolean
+#' @param visit_occurrence boolean
+#' @param condition_occurrence boolean
+#' @param observation boolean
+#' @param drug_exposure boolean
+#' @param procedure_occurrence boolean
+#' @param device_exposure boolean
+#' @param measurement boolean
+#' @param payer_plan_period boolean
+#' @param cost boolean
+#' @param generateEra boolean
+#' @param dose_era boolean
+#' @param cdm_source boolean
+#' @param indexing boolean
+#' @param constraints boolean
+#' @param data_cleansing boolean
+#' 
 #' 
 #' @export
 #' @example executeNHISETL() 
@@ -53,17 +69,17 @@ executeNHISETL <- function(NHISNSC_rawdata,
                            connection,
                            outputFolder,
                            
-                           CDM_ddl = TRUE,
+                           CDM_ddl = FALSE,
                            #import_voca = TRUE,        Importing voca could be unnecessary
-                           master_table = TRUE,
-                           location = TRUE,
-                           care_site = TRUE,
-                           person = TRUE,
-                           death = TRUE,
-                           observation_period = TRUE,
-                           visit_occurrence = TRUE,
-                           condition_occurrence = TRUE,
-                           observation = TRUE,
+                           master_table = FALSE,
+                           location = FALSE,
+                           care_site = FALSE,
+                           person = FALSE,
+                           death = FALSE,
+                           observation_period = FALSE,
+                           visit_occurrence = FALSE,
+                           condition_occurrence = FALSE,
+                           observation = FALSE,
                            drug_exposure = TRUE,
                            procedure_occurrence = TRUE,
                            device_exposure = TRUE,
@@ -768,8 +784,8 @@ executeNHISETL <- function(NHISNSC_rawdata,
         sql <- SqlRender::loadRenderTranslateSql(SqlFile,
                                                  packageName = "etlKoreanNSC",
                                                  dbms = connectionDetails$dbms,
-                                                 NHISNSC_database = NHISNSC_database,
-                                                 Mapping_database = Mapping_database)
+                                                 NHISNSC_database = "NHIS_NSC_v5_3_1",
+                                                 Mapping_database = "NHIS_NSC_new_mapping")
         
         DatabaseConnector::executeSql(connection = connection, sql)
         
@@ -782,11 +798,7 @@ executeNHISETL <- function(NHISNSC_rawdata,
         # sql <- SqlRender::translate(sql,  targetDialect=attr(connection, "dbms"))
         # count <- DatabaseConnector::querySql(connection,sql)
         
-        ParallelLogger::logInfo(sprintf(##"%s was converted.\n
-            "elapsed time : %s %s \n",
-            ##total of %d row was converted", table, 
-            elapsedTime))
-        ##, attributes(elapsedTime)$units, count[1,1]))
+        ParallelLogger::logInfo(sprintf("elapsed time : %s %s \n",elapsedTime,attributes(elapsedTime)$units))
         
     } ## end
     
@@ -804,8 +816,8 @@ executeNHISETL <- function(NHISNSC_rawdata,
         sql <- SqlRender::loadRenderTranslateSql(SqlFile,
                                                  packageName = "etlKoreanNSC",
                                                  dbms = connectionDetails$dbms,
-                                                 NHISNSC_database = NHISNSC_database,
-                                                 Mapping_database = Mapping_database)
+                                                 NHISNSC_database = "NHIS_NSC_v5_3_1",
+                                                 Mapping_database = "NHIS_NSC_new_mapping")
         
         DatabaseConnector::executeSql(connection = connection, sql)
         
@@ -818,11 +830,7 @@ executeNHISETL <- function(NHISNSC_rawdata,
         # sql <- SqlRender::translate(sql,  targetDialect=attr(connection, "dbms"))
         # count <- DatabaseConnector::querySql(connection,sql)
         
-        ParallelLogger::logInfo(sprintf(##"%s was converted.\n
-            "elapsed time : %s %s \n",
-            ##total of %d row was converted", table, 
-            elapsedTime))
-        ##, attributes(elapsedTime)$units, count[1,1]))
+        ParallelLogger::logInfo(sprintf("elapsed time : %s %s \n",elapsedTime,attributes(elapsedTime)$units))
         
     } ## end
     
@@ -860,11 +868,10 @@ executeNHISETL <- function(NHISNSC_rawdata,
         # sql <- SqlRender::translate(sql,  targetDialect=attr(connection, "dbms"))
         # count <- DatabaseConnector::querySql(connection,sql)
         
-        ParallelLogger::logInfo(sprintf(##"%s was converted.\n
-            "elapsed time : %s %s \n",
-            ##total of %d row was converted", table, 
-            elapsedTime))
-        ##, attributes(elapsedTime)$units, count[1,1]))
-        
+        ParallelLogger::logInfo(sprintf("elapsed time : %s %s \n",elapsedTime,attributes(elapsedTime)$units))
+
     } ## end
 }
+
+
+ParallelLogger::logInfo(sprintf("elapsed time : %s %s \n",elapsedTime))
