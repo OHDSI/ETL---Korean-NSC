@@ -57,7 +57,7 @@ Standardized vocabulary
 
 ************************/
 /**
-Use @Mapping_database
+Use @NHISNSC_database
 
 ALTER TABLE concept ADD CONSTRAINT xpk_concept PRIMARY KEY NONCLUSTERED (concept_id);
 
@@ -95,8 +95,6 @@ Standardized meta-data
 Standardized clinical data
 
 ************************/
-
-Use @NHISNSC_database
 
 /**PRIMARY KEY NONCLUSTERED constraints**/
 
@@ -163,13 +161,11 @@ ALTER TABLE cost ADD CONSTRAINT xpk_visit_cost PRIMARY KEY NONCLUSTERED ( cost_i
 Standardized derived elements
 
 ************************/
-Use @Mapping_database
 
 ALTER TABLE cohort ADD CONSTRAINT xpk_cohort PRIMARY KEY NONCLUSTERED ( cohort_definition_id, subject_id, cohort_start_date, cohort_end_date  ) ;
 
 ALTER TABLE cohort_attribute ADD CONSTRAINT xpk_cohort_attribute PRIMARY KEY NONCLUSTERED ( cohort_definition_id, subject_id, cohort_start_date, cohort_end_date, attribute_definition_id ) ;
 
-Use @NHISNSC_database
 
 ALTER TABLE drug_era ADD CONSTRAINT xpk_drug_era PRIMARY KEY NONCLUSTERED ( drug_era_id ) ;
 
@@ -195,8 +191,6 @@ Indices
 Standardized vocabulary
 
 ************************/
-
-Use @Mapping_database
 
 CREATE UNIQUE CLUSTERED INDEX idx_concept_concept_id ON concept (concept_id ASC);
 CREATE INDEX idx_concept_code ON concept (concept_code ASC);
@@ -249,8 +243,6 @@ Standardized meta-data
 Standardized clinical data
 
 ************************/
-
-Use @NHISNSC_database
 
 CREATE UNIQUE CLUSTERED INDEX idx_person_id ON person (person_id ASC);
 
@@ -332,15 +324,12 @@ Standardized derived elements
 
 ************************/
 
-Use @Mapping_database
 
 CREATE INDEX idx_cohort_subject_id ON cohort (subject_id ASC);
 CREATE INDEX idx_cohort_c_definition_id ON cohort (cohort_definition_id ASC);
 
 CREATE INDEX idx_ca_subject_id ON cohort_attribute (subject_id ASC);
 CREATE INDEX idx_ca_definition_id ON cohort_attribute (cohort_definition_id ASC);
-
-Use @NHISNSC_database
 
 CREATE CLUSTERED INDEX idx_drug_era_person_id ON drug_era (person_id ASC);
 CREATE INDEX idx_drug_era_concept_id ON drug_era (drug_concept_id ASC);
